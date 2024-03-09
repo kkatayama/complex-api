@@ -161,4 +161,6 @@ cython_debug/
 
 
 # ComPlex files to ignore...
-secret.py
+configs.py
+tracks.db
+music/
