@@ -1,6 +1,6 @@
 from pydantic import EmailStr
 from typing import List, Optional
-from sqlmodel import Field, SQLModel, Relationship
+from sqlmodel import Field, SQLModel, Relationship, AutoString
 
 
 class PlaylistBase(SQLModel):
@@ -28,7 +28,7 @@ class PlaylistUpdate(SQLModel):
 
 class UserBase(SQLModel):
     name: str = Field(index=True)
-    email: EmailStr = Field(unique=True, index=True, nullable=False)
+    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
