@@ -1,3 +1,4 @@
+from pydantic import EmailStr
 from typing import List, Optional
 from sqlmodel import Field, SQLModel, Relationship
 
@@ -27,10 +28,10 @@ class PlaylistUpdate(SQLModel):
 
 class UserBase(SQLModel):
     name: str = Field(index=True)
-    email: str = Field(unique=True, index=True)
-    username: str = Field(unique=True, index=True)
-    password: str
-    play_count: Optional[int] = Field(default=0)
+    email: str = Field(unique=True, index=True, nullable=False)
+    username: str = Field(unique=True, index=True, nullable=False)
+    password: str = Field(nullable=False)
+    disabled: bool = Field(nullable=False)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -42,6 +43,18 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: int
+
+class UserOutSchema(UserBase):
+    username: str
+    email: EmailStr
+    name: str
+    disabled: bool
+
+class UserInSchema(UserBase):
+    username: str
+    email: EmailStr
+    name: str
+    password: str
 
 class UserUpdate(SQLModel):
     name: Optional[str] = None
@@ -56,6 +69,16 @@ class UserWithPlaylists(UserRead):
 
 class PlaylistWithUser(PlaylistRead):
     owner: Optional[User] = None
+
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str
+
+class TokenData(SQLModel):
+    username: str | None = None
+
+
 
 """
 class Artist(SQLModel, table=True):
@@ -83,6 +106,7 @@ class Track(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     release_date: str = Field(index=True)
+    play_count: Optional[int] = Field(default=0)
 
     artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
     artist: Optional[Artist] = Relationship(back_populates="artist")

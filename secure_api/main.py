@@ -14,6 +14,6 @@ def on_startup():
     # create_tracks()
 
 
-app.include_router(users_router)
+app.include_router(users_router, prefix="", tags=["Users"])
 app.include_router(playlists_router)
 
