@@ -1,44 +1,31 @@
-from datetime import datetime, timedelta
+import secrets
 
 from typing import List
 from sqlmodel import Session, select
 from fastapi import APIRouter, Depends, HTTPException, status
-
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+from starlette.status import HTTP_409_CONFLICT
 
 from secure_api.database.database import get_session
 from secure_api.models import models
-from secure_api import configs
+from secure_api.auth import auth_api
 
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 users_router = APIRouter()
 
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def get_user(session: Session, username: str):
-    return session.exec(select(models.User).where(models.User.username == username)).first()
-
-
 @users_router.post("/users/", response_model=models.UserRead)
-def create_user(*, session: Session = Depends(get_session), user: models.UserCreate):
-    print(f'\nuser = {user}')
-    temp_user = get_user(session, user.username)
-    print(f'temp_user = {temp_user}\n')
+def create_user(*, db: Session = Depends(get_session), user: models.UserCreate):
     db_user = models.User.model_validate(user)
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
+    print(f'\ndb_user = {db_user}\n')
+
+    if not secrets.compare_digest(user.password1.encode(), user.password2.encode()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords don't math")
+    if auth_api.get_user(db, user.email):
+        raise HTTPException(status_code=HTTP_409_CONFLICT, detail="E-mail already exists")
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
     return db_user
 
 
