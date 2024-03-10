@@ -13,7 +13,7 @@ from secure_api.auth import auth_api
 users_router = APIRouter()
 
 
-@users_router.post("/users/", response_model=models.UserRead)
+@users_router.post("/users/", response_model=models.User)
 def create_user(*, db: Session = Depends(get_session), user: models.UserCreate):
     db_user = models.User.model_validate(user)
     print(f'\ndb_user = {db_user}\n')
@@ -29,7 +29,7 @@ def create_user(*, db: Session = Depends(get_session), user: models.UserCreate):
     return db_user
 
 
-@users_router.get("/users/", response_model=List[models.UserRead])
+@users_router.get("/users/", response_model=List[models.User])
 def read_users(*, session: Session = Depends(get_session)):
     users = session.exec(select(models.User)).all()
     print(f'\nusers = {users}\n')
