@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from typing import List
-from pydantic import EmailStr
+from pydantic import EmailStr, ValidationError
 from sqlmodel import Session, select
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -14,16 +14,79 @@ from secure_api.models import models
 from secure_api import configs
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+###############################################################################
+#                          Password And JWT Functions                         #
+###############################################################################
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def get_hashed_password(password: str):
+    return password_context.hash(password)
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str):
+    return password_context.verify(plain_password, hashed_password)
+
+
+def create_access_token(item: str, expires_delta: timedelta = None):
+    if expires_delta is not None:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    to_encode = ({"exp": expire, "sub": str(item)})
+    encoded_jwt = jwt.encode(to_encode, configs.JWT_SECRET_KEY, algorithm=configs.JWT_ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_token(item: str, expires_delta: timedelta = None):
+    if expires_delta is not None:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=configs.REFRESH_TOKEN_EXPIRE_MINUTES)
+
+    to_encode = ({"exp": expire, "sub": str(item)})
+    encoded_jwt = jwt.encode(to_encode, configs.JWT_REFRESH_KEY, algorithm=configs.JWT_ALGORITHM)
+    return encoded_jwt
+
+###############################################################################
+#                         OAuth2 API Related Functions                        #
+###############################################################################
+
+
+reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT")
+
+
+def get_current_user(token: str = Depends(reusable_oauth)):
+    headers={"WWW-Authenticate": "Bearer"}
+    # -- Verify Token --#
+    try:
+        payload = jwt.decode(token, configs.JWT_SECRET_KEY, algorithms=[configs.JWT_ALGORITHM})
+        token_data = models.TokenPayload(**payload)
+
+        if datetime.fromtimestamp(token_data.exp) < datetime.now():
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired", headers=headers)
+    except (jwt.JWTError, ValidationError):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials", headers=headers)
+    user:
+
+
+        email: EmailStr = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = models.TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    return token_data
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "bearer"},)
+    return verify_token(token, credentials_exception=credentials_exception)
+
 
 def get_user(session: Session, email: EmailStr):
     return session.exec(select(models.User).where(models.User.email == email)).first()
@@ -40,33 +103,8 @@ def authenticate_user(session: Session, email: EmailStr, password: str):
             detail="Invalid credentials", headers={"WWW-Authenticate": "Bearer"})
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, configs.JWT_SECRET, algorithm=configs.JWT_ALGORITHM)
-    return encoded_jwt
 
-def verify_token(token, credentials_exception):
-    try:
-        payload = jwt.decode(token, configs.JWT_SECRET, algorithms=configs.JWT_ALGORITHM)
-        email: EmailStr = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        token_data = models.TokenData(email=email)
-    except JWTError:
-        raise credentials_exception
-    return token_data
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "bearer"},)
-    return verify_token(token, credentials_exception=credentials_exception)
 
 def get_current_active_user(current_user: models.User = Depends(get_current_user),):
     if current_user.disabled:
