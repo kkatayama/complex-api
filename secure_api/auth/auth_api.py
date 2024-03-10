@@ -59,7 +59,7 @@ def create_refresh_token(item: str, expires_delta: timedelta = None):
 reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT")
 
 
-def get_current_user(token: str = Depends(reusable_oauth)):
+def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session), ):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -68,24 +68,13 @@ def get_current_user(token: str = Depends(reusable_oauth)):
 
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired", headers=headers)
-    except (jwt.JWTError, ValidationError):
+    except (JWTError, ValidationError):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials", headers=headers)
-    #user:
 
-
-        email: EmailStr = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        token_data = models.TokenData(email=email)
-    except JWTError:
-        raise credentials_exception
-    return token_data
-
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "bearer"},)
-    return verify_token(token, credentials_exception=credentials_exception)
+    user = db.get(models.User, token_data.sub)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
+    return user
 
 
 def get_user(session: Session, email: EmailStr):
@@ -107,6 +96,4 @@ def authenticate_user(session: Session, email: EmailStr, password: str):
 
 
 def get_current_active_user(current_user: models.User = Depends(get_current_user),):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
