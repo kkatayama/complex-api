@@ -64,7 +64,7 @@ class TokenSchema(SQLModel):
     refresh_token: str
 
 class TokenPayload(SQLModel):
-    sub: str
+    sub: UserEmail
     exp: int
 
 
