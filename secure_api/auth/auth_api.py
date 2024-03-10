@@ -63,7 +63,7 @@ def get_current_user(token: str = Depends(reusable_oauth)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
-        payload = jwt.decode(token, configs.JWT_SECRET_KEY, algorithms=[configs.JWT_ALGORITHM})
+        payload = jwt.decode(token, configs.JWT_SECRET_KEY, algorithms=[configs.JWT_ALGORITHM])
         token_data = models.TokenPayload(**payload)
 
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
