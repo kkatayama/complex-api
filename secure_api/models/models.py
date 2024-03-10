@@ -28,40 +28,28 @@ class PlaylistUpdate(SQLModel):
 
 class UserBase(SQLModel):
     name: str = Field(index=True)
-    email: str = Field(unique=True, index=True, nullable=False)
-    username: str = Field(unique=True, index=True, nullable=False)
-    password: str = Field(nullable=False)
-    disabled: bool = Field(nullable=False)
+    email: EmailStr = Field(unique=True, index=True, nullable=False)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    password: str = Field(nullable=False)
+    disabled: bool = Field(default=False, nullable=False)
 
     playlists: List[Playlist] = Relationship(back_populates="owner")
 
 class UserCreate(UserBase):
-    pass
+    password1: str
+    password2: str
 
 class UserRead(UserBase):
     id: int
-
-class UserOutSchema(UserBase):
-    username: str
-    email: EmailStr
-    name: str
     disabled: bool
 
 class UserInSchema(UserBase):
-    username: str
-    email: EmailStr
-    name: str
     password: str
 
-class UserUpdate(SQLModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
-    username: Optional[str] = None
+class UserUpdate(UserBase):
     password: Optional[str] = None
-    play_count: Optional[int] = None
 
 
 class UserWithPlaylists(UserRead):
@@ -76,7 +64,7 @@ class Token(SQLModel):
     token_type: str
 
 class TokenData(SQLModel):
-    username: str | None = None
+    email: EmailStr | None = None
 
 
 
