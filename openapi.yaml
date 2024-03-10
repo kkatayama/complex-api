@@ -1,0 +1,439 @@
+openapi: 3.1.0
+info:
+  title: FastAPI
+  version: 0.1.0
+paths:
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login
+      operationId: login_auth_login_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_auth_login_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Read Auth Me
+      operationId: read_auth_me_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+      - JWT: []
+  /auth/me/playlists:
+    get:
+      tags:
+      - Auth
+      summary: Read Auth Me Playlists
+      operationId: read_auth_me_playlists_auth_me_playlists_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithPlaylists'
+      security:
+      - JWT: []
+  /users/:
+    get:
+      tags:
+      - Users
+      summary: Read Users
+      operationId: read_users_users__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/User'
+                type: array
+                title: Response Read Users Users  Get
+    post:
+      tags:
+      - Users
+      summary: Create User
+      operationId: create_user_users__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /users/{user_id}:
+    get:
+      tags:
+      - Users
+      summary: Read User
+      operationId: read_user_users__user_id__get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithPlaylists'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /playlists/:
+    get:
+      tags:
+      - Playlists
+      summary: Read Playlists
+      operationId: read_playlists_playlists__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PlaylistRead'
+                type: array
+                title: Response Read Playlists Playlists  Get
+    post:
+      tags:
+      - Playlists
+      summary: Create Playlist
+      operationId: create_playlist_playlists__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaylistCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /playlists/{playlist_id}:
+    get:
+      tags:
+      - Playlists
+      summary: Read Playlist
+      operationId: read_playlist_playlists__playlist_id__get
+      parameters:
+      - name: playlist_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Playlist Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistWithUser'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    Body_login_auth_login_post:
+      properties:
+        grant_type:
+          anyOf:
+          - type: string
+            pattern: password
+          - type: 'null'
+          title: Grant Type
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          title: Password
+        scope:
+          type: string
+          title: Scope
+          default: ''
+        client_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Id
+        client_secret:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Secret
+      type: object
+      required:
+      - username
+      - password
+      title: Body_login_auth_login_post
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    Playlist:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        owner_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Owner Id
+        id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Id
+      type: object
+      required:
+      - title
+      title: Playlist
+    PlaylistCreate:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        owner_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Owner Id
+      type: object
+      required:
+      - title
+      title: PlaylistCreate
+    PlaylistRead:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        owner_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Owner Id
+        id:
+          type: integer
+          title: Id
+      type: object
+      required:
+      - title
+      - id
+      title: PlaylistRead
+    PlaylistWithUser:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        owner_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Owner Id
+        id:
+          type: integer
+          title: Id
+        owner:
+          anyOf:
+          - $ref: '#/components/schemas/User'
+          - type: 'null'
+      type: object
+      required:
+      - title
+      - id
+      title: PlaylistWithUser
+    TokenSchema:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        refresh_token:
+          type: string
+          title: Refresh Token
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      title: TokenSchema
+    User:
+      properties:
+        name:
+          type: string
+          title: Name
+        email:
+          type: string
+          format: email
+          title: Email
+        id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Id
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - name
+      - email
+      - password
+      title: User
+    UserCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        email:
+          type: string
+          format: email
+          title: Email
+        password1:
+          type: string
+          title: Password1
+        password2:
+          type: string
+          title: Password2
+      type: object
+      required:
+      - name
+      - email
+      - password1
+      - password2
+      title: UserCreate
+    UserWithPlaylists:
+      properties:
+        name:
+          type: string
+          title: Name
+        email:
+          type: string
+          format: email
+          title: Email
+        id:
+          type: integer
+          title: Id
+        playlists:
+          items:
+            $ref: '#/components/schemas/Playlist'
+          type: array
+          title: Playlists
+          default: []
+      type: object
+      required:
+      - name
+      - email
+      - id
+      title: UserWithPlaylists
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    JWT:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: /login
