@@ -70,7 +70,7 @@ def get_current_user(token: str = Depends(reusable_oauth)):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired", headers=headers)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials", headers=headers)
-    user:
+    #user:
 
 
         email: EmailStr = payload.get("sub")
