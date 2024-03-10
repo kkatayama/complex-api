@@ -52,10 +52,6 @@ class UserUpdate(SQLModel):
 class UserOut(UserBase):
     id: int
 
-
-class SystemUser(UserOut):
-    password: str
-
 class UserWithPlaylists(UserOut):
     playlists: List[Playlist] = []
 
