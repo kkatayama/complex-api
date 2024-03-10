@@ -13,10 +13,13 @@ from secure_api.auth import auth_api
 users_router = APIRouter()
 
 
-@users_router.post("/users/", response_model=models.User)
+@users_router.post("/signup", response_model=models.User)
 def create_user(*, db: Session = Depends(get_session), user: models.UserCreate):
     db_user = models.User.model_validate(user)
-    print(f'\ndb_user = {db_user}\n')
+    user = db.exec(select(models.User).where(models.User.email == db_user.email)).first()
+    if user is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with this email already exist")
+
 
     if not secrets.compare_digest(user.password1.encode(), user.password2.encode()):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords don't math")

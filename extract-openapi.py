@@ -1,4 +1,5 @@
 # extract-openapi.py
+# https://www.doctave.com/blog/python-export-fastapi-openapi-spec#step-2-create-an-export-script
 import argparse
 import json
 import sys
