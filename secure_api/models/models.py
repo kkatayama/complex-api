@@ -1,5 +1,6 @@
+from pydantic import EmailStr
 from typing import List, Optional
-from sqlmodel import Field, SQLModel, Relationship
+from sqlmodel import Field, SQLModel, Relationship, AutoString
 
 
 class PlaylistBase(SQLModel):
@@ -27,35 +28,45 @@ class PlaylistUpdate(SQLModel):
 
 class UserBase(SQLModel):
     name: str = Field(index=True)
-    email: str = Field(unique=True, index=True)
-    username: str = Field(unique=True, index=True)
-    password: str
-    play_count: Optional[int] = Field(default=0)
+    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    password: str = Field(nullable=False)
 
     playlists: List[Playlist] = Relationship(back_populates="owner")
 
 class UserCreate(UserBase):
-    pass
+    password1: str
+    password2: str
 
-class UserRead(UserBase):
-    id: int
+class UserAuth(SQLModel):
+    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
+    password: str = Field(nullable=False)
 
 class UserUpdate(SQLModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    play_count: Optional[int] = None
+    name: Optional[str]
+    email: Optional[EmailStr]
+    password: Optional[str]
 
+class UserOut(UserBase):
+    id: int
 
-class UserWithPlaylists(UserRead):
+class UserWithPlaylists(UserOut):
     playlists: List[Playlist] = []
 
 class PlaylistWithUser(PlaylistRead):
     owner: Optional[User] = None
+
+
+class TokenSchema(SQLModel):
+    access_token: str
+    refresh_token: str
+
+class TokenPayload(SQLModel):
+    sub: str
+    exp: int
+
 
 """
 class Artist(SQLModel, table=True):
@@ -83,6 +94,7 @@ class Track(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     release_date: str = Field(index=True)
+    play_count: Optional[int] = Field(default=0)
 
     artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
     artist: Optional[Artist] = Relationship(back_populates="artist")
