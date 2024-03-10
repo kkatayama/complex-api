@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from secure_api.database.database import create_db_and_tables
+from secure_api.routes.auth import auth_router
 from secure_api.routes.users import users_router
 from secure_api.routes.playlists import playlists_router
 
@@ -14,6 +15,6 @@ def on_startup():
     # create_tracks()
 
 
+app.include_router(auth_router, prefix="", tags=["Auth"])
 app.include_router(users_router, prefix="", tags=["Users"])
-app.include_router(playlists_router)
-
+app.include_router(playlists_router, prefix="", tags=["Playlists"])
