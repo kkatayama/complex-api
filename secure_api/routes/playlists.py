@@ -1,35 +1,33 @@
 from typing import List
 from sqlmodel import Session, select
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from secure_api.database.database import get_session
-from secure_api.models import models
+from secure_api.models.models import Playlist, PlaylistRead, PlaylistCreate, PlaylistWithUser
+from secure_api.auth.auth_api import get_current_user
 
 
-playlists_router = APIRouter()
+playlists_router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
-@playlists_router.post("/playlists/", response_model=models.PlaylistRead)
-def create_playlist(*, session: Session = Depends(get_session), playlist: models.PlaylistCreate):
-    print(f'\nplaylist = {playlist}\n')
-    db_playlist = models.Playlist.model_validate(playlist)
-    session.add(db_playlist)
-    session.commit()
-    session.refresh(db_playlist)
+@playlists_router.post("/playlists/", response_model=PlaylistRead)
+def create_playlist(*, db: Session = Depends(get_session), playlist: PlaylistCreate):
+    db_playlist = Playlist.model_validate(playlist)
+    db.add(db_playlist)
+    db.commit()
+    db.refresh(db_playlist)
     return db_playlist
 
 
-@playlists_router.get("/playlists/", response_model=List[models.PlaylistRead])
-def read_playlists(*, session: Session = Depends(get_session)):
-    playlists = session.exec(select(models.Playlist)).all()
-    print(f'\nplaylists = {playlists}\n')
+@playlists_router.get("/playlists/", response_model=List[PlaylistRead])
+def read_playlists(*, db: Session = Depends(get_session)):
+    playlists = db.exec(select(Playlist)).all()
     return playlists
 
 
-@playlists_router.get("/playlists/{playlist_id}", response_model=models.PlaylistWithUser)
-def read_playlist(*, session: Session = Depends(get_session), playlist_id: int):
-    playlist = session.get(models.Playlist, playlist_id)
-    print(f'\nplaylist = {playlist}\n')
+@playlists_router.get("/playlists/{playlist_id}", response_model=PlaylistWithUser)
+def read_playlist(*, db: Session = Depends(get_session), playlist_id: int):
+    playlist = db.get(Playlist, playlist_id)
     if not playlist:
-        raise HTTPException(status_code=404, detail="Playlist not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playlist not found")
     return playlist

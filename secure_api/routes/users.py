@@ -1,48 +1,24 @@
-import secrets
-
 from typing import List
 from sqlmodel import Session, select
 from fastapi import APIRouter, Depends, HTTPException, status
-from starlette.status import HTTP_409_CONFLICT
 
 from secure_api.database.database import get_session
-from secure_api.models import models
-from secure_api.auth import auth_api
+from secure_api.models.models import User, UserOut, UserWithPlaylists  # , UserUpdate
+from secure_api.auth.auth_api import get_current_user
 
 
-users_router = APIRouter()
+users_router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
-@users_router.post("/signup", response_model=models.User)
-def create_user(*, db: Session = Depends(get_session), user: models.UserCreate):
-    db_user = models.User.model_validate(user)
-    user = db.exec(select(models.User).where(models.User.email == db_user.email)).first()
-    if user is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with this email already exist")
-
-
-    if not secrets.compare_digest(user.password1.encode(), user.password2.encode()):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords don't math")
-    if auth_api.get_user(db, user.email):
-        raise HTTPException(status_code=HTTP_409_CONFLICT, detail="E-mail already exists")
-
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-
-@users_router.get("/users/", response_model=List[models.User])
-def read_users(*, session: Session = Depends(get_session)):
-    users = session.exec(select(models.User)).all()
-    print(f'\nusers = {users}\n')
+@users_router.get("/users/", summary="Get array[] of all users", response_model=List[UserOut])
+def read_users(*, db: Session = Depends(get_session)):
+    users = db.exec(select(User)).all()
     return users
 
 
-@users_router.get("/users/{user_id}", response_model=models.UserWithPlaylists)
-def read_user(*, session: Session = Depends(get_session), user_id: int):
-    user = session.get(models.User, user_id)
-    print(f'\nuser = {user}\n')
+@users_router.get("/users/{user_id}", summary="Get details of a user", response_model=UserWithPlaylists)
+def read_user(*, db: Session = Depends(get_session) , user_id: int):
+    user = db.exec(select(User).where(User.id == user_id)).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user

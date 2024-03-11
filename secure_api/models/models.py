@@ -49,6 +49,10 @@ class UserUpdate(SQLModel):
     email: Optional[EmailStr]
     password: Optional[str]
 
+class UserUpdatePass(SQLModel):
+    old_password: str
+    new_password: str
+
 class UserOut(UserBase):
     id: int
 
@@ -64,7 +68,7 @@ class TokenSchema(SQLModel):
     refresh_token: str
 
 class TokenPayload(SQLModel):
-    sub: UserEmail
+    sub: int
     exp: int
 
 
