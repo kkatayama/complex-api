@@ -14,6 +14,9 @@ from secure_api.database.database import get_session
 from secure_api.models import models
 from secure_api import configs
 
+from rich.console import Console
+from rich import inspect
+
 
 ###############################################################################
 #                          Password And JWT Functions                         #
@@ -35,7 +38,7 @@ def create_access_token(user_id, expires_delta: timedelta):
     else:
         expire = datetime.utcnow() + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = ({"exp": expire, "sub": user_id})
+    to_encode = ({"exp": expire, "sub": str(user_id)})
     encoded_jwt = jwt.encode(to_encode, configs.JWT_SECRET_KEY, algorithm=configs.JWT_ALGORITHM)
     return encoded_jwt
 
@@ -45,7 +48,7 @@ def create_refresh_token(user_id, expires_delta: timedelta):
     else:
         expire = datetime.utcnow() + timedelta(minutes=configs.REFRESH_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = ({"exp": expire, "sub": user_id})
+    to_encode = ({"exp": expire, "sub": str(user_id)})
     encoded_jwt = jwt.encode(to_encode, configs.JWT_REFRESH_KEY, algorithm=configs.JWT_ALGORITHM)
     return encoded_jwt
 
@@ -58,16 +61,21 @@ def create_refresh_token(user_id, expires_delta: timedelta):
 reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login",  scheme_name="JWT")
 
 
+c = Console()
+
+
 def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
+    c.print(inspect(token))
     try:
         payload = jwt.decode(token, configs.JWT_SECRET_KEY, algorithms=[configs.JWT_ALGORITHM])
         token_data = models.TokenPayload(**payload)
 
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired", headers=headers)
-    except (JWTError, ValidationError):
+    except (JWTError, ValidationError) as ext:
+        c.print(inspect(ext))
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
 
     user = db.get(models.User, token_data.sub)
@@ -84,7 +92,8 @@ def get_refresh_user(token: str = Depends(reuseable_oauth), db: Session = Depend
 
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired", headers=headers)
-    except (JWTError, ValidationError):
+    except (JWTError, ValidationError) as ext:
+        c.print(inspect(ext))
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
 
     user = db.get(models.User, token_data.sub)
@@ -98,10 +107,10 @@ def get_refresh_user(token: str = Depends(reuseable_oauth), db: Session = Depend
 ###############################################################################
 
 # Dependency to check token revocation
-def is_token_revoked(token: str = Depends(reuseable_oauth)):
-    """
-    Dependency function to check if a token is revoked before processing a request.
-    """
-    if token in configs.revoked_tokens:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
-    return token
+# def is_token_revoked(token: str = Depends(reuseable_oauth)):
+#     """
+#     Dependency function to check if a token is revoked before processing a request.
+#     """
+#     if token in configs.revoked_tokens:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
+#     return token
