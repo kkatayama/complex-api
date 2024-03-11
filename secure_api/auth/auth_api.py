@@ -98,10 +98,10 @@ def get_refresh_user(token: str = Depends(reuseable_oauth), db: Session = Depend
 ###############################################################################
 
 # Dependency to check token revocation
-def is_token_revoked(token: str = Depends(reuseable_oauth)):
-    """
-    Dependency function to check if a token is revoked before processing a request.
-    """
-    if token in configs.revoked_tokens:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
-    return token
+# def is_token_revoked(token: str = Depends(reuseable_oauth)):
+#     """
+#     Dependency function to check if a token is revoked before processing a request.
+#     """
+#     if token in configs.revoked_tokens:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
+#     return token
