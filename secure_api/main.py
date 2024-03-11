@@ -15,9 +15,12 @@ def on_startup():
     create_db_and_tables()
     # create_tracks()
 
-music_path = Path.cwd().joinpath('secure_api', 'music')
 
-app.mount(str(music_path), StaticFiles(directory=music_path), name="music")
 app.include_router(auth_router, prefix="", tags=["Auth"])
 app.include_router(users_router, prefix="", tags=["Users"])
 app.include_router(playlists_router, prefix="", tags=["Playlists"])
+
+
+music_path = Path.cwd().joinpath('secure_api', 'music')
+staticfiles = StaticFiles(directory=str(music_path))
+app.mount("/static", staticfiles, name="static")
