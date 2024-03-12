@@ -3,6 +3,7 @@ from rich.traceback import install
 install(show_locals=True)
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from secure_api.database.database import create_db_and_tables
 from secure_api.routes.auth import auth_router
