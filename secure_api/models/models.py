@@ -3,73 +3,22 @@ from typing import List, Optional
 from sqlmodel import Field, SQLModel, Relationship, AutoString
 
 
-class PlaylistBase(SQLModel):
+class Playlist(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     description: Optional[str] = None
 
     owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
-
-class Playlist(PlaylistBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-
     owner: Optional["User"] = Relationship(back_populates="playlists")
 
-class PlaylistCreate(PlaylistBase):
-    pass
 
-class PlaylistRead(PlaylistBase):
-    id: int
-
-class PlaylistUpdate(SQLModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    owner_id: Optional[int] = None
-
-
-class UserBase(SQLModel):
-    name: str = Field(index=True)
-    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
-
-class User(UserBase, table=True):
+class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    password: str = Field(nullable=False)
+    name: str = Field(index=True)
+    email: str = Field(unique=True, index=True)
+    password: str
 
     playlists: List[Playlist] = Relationship(back_populates="owner")
-
-class UserCreate(UserBase):
-    password1: str
-    password2: str
-
-class UserAuth(SQLModel):
-    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
-    password: str = Field(nullable=False)
-
-class UserUpdate(SQLModel):
-    name: Optional[str]
-    email: Optional[EmailStr]
-    password: Optional[str]
-
-class UserUpdatePass(SQLModel):
-    old_password: str
-    new_password: str
-
-class UserOut(UserBase):
-    id: int
-
-class UserWithPlaylists(UserOut):
-    playlists: List[Playlist] = []
-
-class PlaylistWithUser(PlaylistRead):
-    owner: Optional[User] = None
-
-
-class TokenSchema(SQLModel):
-    access_token: str
-    refresh_token: str
-
-class TokenPayload(SQLModel):
-    sub: int
-    exp: int
 
 
 """
@@ -98,7 +47,6 @@ class Track(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     release_date: str = Field(index=True)
-    play_count: Optional[int] = Field(default=0)
 
     artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
     artist: Optional[Artist] = Relationship(back_populates="artist")
