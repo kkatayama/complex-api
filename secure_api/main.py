@@ -3,7 +3,6 @@ from rich.traceback import install
 install(show_locals=True)
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from secure_api.database.database import create_db_and_tables
 from secure_api.routes.auth import auth_router
@@ -21,8 +20,6 @@ def on_startup():
 
 
 music_path = Path.cwd().joinpath('secure_api', 'music')
-staticfiles = StaticFiles(directory=str(music_path))
-app.mount("/static", staticfiles, name="static")
 
 app.include_router(auth_router, prefix="")
 app.include_router(users_router, prefix="")

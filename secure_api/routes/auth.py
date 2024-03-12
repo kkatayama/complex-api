@@ -22,6 +22,7 @@ c = Console()
 
 
 @auth_router.post("/sign-up", summary="Create a user account", response_model=User, tags=["User"])
+@auth_router.post("/users", summary="Create a user account", response_model=User, tags=["User"])
 def create_user(*, db: Session = Depends(get_session), user: CreateUser):
     if not secrets.compare_digest(user.password1, user.password2):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
@@ -55,7 +56,7 @@ def login(*, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Dep
 @auth_router.post('/refresh', summary="Refresh jwt API tokens", response_model=TokenSchema, tags=["JWT-OAuth2"])
 def refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
     grant_type = form_data.username
-    user = get_refresh_uer(token=form_data.password)
+    user = get_refresh_user(token=form_data.password)
 # def refresh_token(*, user: User = Depends(get_refresh_user), authorization: Optional[str] = Depends(security)):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

@@ -11,7 +11,7 @@ from secure_api.auth.auth_api import get_current_user, verify_password, get_hash
 users_router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
-@users_router.get("/users/", summary="Get array[] of all users", response_model=List[User], tags=["User"])
+@users_router.get("/users", summary="Get array[] of all users", response_model=List[User], tags=["User"])
 def read_users(*, db: Session = Depends(get_session)):
     users = db.exec(select(User)).all()
     return users
@@ -26,10 +26,12 @@ def read_user(*, db: Session = Depends(get_session), user_id: int):
 
 
 @users_router.patch("/users/{user_id}", summary="Edit user details", tags=["User"])
-def edit_user(*, user_id: int, user: EditUser, db: Session = Depends(get_session)):
+def edit_user(*, user_id: int, user: EditUser, db: Session = Depends(get_session), me: User = Depends(get_current_user)):
     db_user = db.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if (user_id != me.id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your user")
 
     user_data = user.model_dump(exclude_unset=True)
     db_user.sqlmodel_update(user_dta)

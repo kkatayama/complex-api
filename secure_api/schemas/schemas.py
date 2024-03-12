@@ -1,7 +1,23 @@
-from typing import List, Optional
 from pydantic import EmailStr
-from sqlmodel import Field, SQLModel
-#from secure_api.models.models import Playlist, User # , Artist, Album, Track
+from typing import List, Optional
+from sqlmodel import SQLModel
+
+
+class CreateArtist(SQLModel):
+    title: str
+    image_path: str
+
+class CreateAlbum(SQLModel):
+    title: str
+    image_path: str
+    artist_name: str
+
+class CreateTrack(SQLModel):
+    title: str
+    mp3_path: str
+    recorded_date: str
+    artist_name: str
+    album_name: str
 
 
 class PlaylistBase(SQLModel):
@@ -13,21 +29,13 @@ class PlaylistBase(SQLModel):
 class PlaylistFull(PlaylistBase):
     id: int
 
-# class Playlist(PlaylistBase, table=True):
-#     id: Optional[int] = Field(default=None, primary_key=True)
+class CreatePlaylist(SQLModel):
+    title: str
+    description: Optional[str] = None
 
-#     owner: Optional["User"] = Relationship(back_populates="playlists")
-
-class PlaylistCreate(PlaylistBase):
-    pass
-
-class PlaylistRead(PlaylistBase):
-    id: int
-
-class PlaylistUpdate(SQLModel):
+class EditPlaylist(SQLModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    owner_id: Optional[int] = None
 
 
 class UserBase(SQLModel):
@@ -63,6 +71,7 @@ class PlaylistWithUser(PlaylistFull):
 class TokenSchema(SQLModel):
     access_token: str
     refresh_token: str
+
 
 class TokenPayload(SQLModel):
     sub: int

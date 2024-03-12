@@ -3,14 +3,14 @@ from pathlib import Path
 import json
 
 from pydantic import ValidationError
-from sqlmodel import Session
+from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
 
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from secure_api.database.database import get_session
+from secure_api.database.database import get_session, engine
 from secure_api.models.models import User
 from secure_api.schemas.schemas import TokenPayload
 from secure_api.configs import JWT_ALGORITHM, JWT_REFRESH_KEY, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
@@ -78,7 +78,9 @@ def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depend
         c.print(inspect(ext))
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
 
-    user = db.get(User, token_data.sub)
+    with Session(engine) as db:
+        user = db.exec(select(User).where(User.id == token_data.sub)).first()
+    # user = db.get(User, token_data.sub)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
     return user
@@ -96,7 +98,9 @@ def get_refresh_user(token: str = Depends(reuseable_oauth), db: Session = Depend
         c.print(inspect(ext))
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
 
-    user = db.get(User, token_data.sub)
+    with Session(engine) as db:
+        user = db.exec(select(User).where(User.id == token_data.sub)).first()
+    # user = db.get(User, token_data.sub)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
     return user
