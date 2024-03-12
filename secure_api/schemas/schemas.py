@@ -1,28 +1,84 @@
+from pydantic import EmailStr
 from typing import List, Optional
-from sqlmodel import Field, SQLModel, Relationship
+from sqlmodel import SQLModel
 
 
-class Playlist(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
+class CreateArtist(SQLModel):
+    title: str
+    image_path: str
+
+class CreateAlbum(SQLModel):
+    title: str
+    image_path: str
+    artist_name: str
+
+class CreateTrack(SQLModel):
+    title: str
+    mp3_path: str
+    recorded_date: str
+    artist_name: str
+    album_name: str
+
+
+class PlaylistBase(SQLModel):
+    title: str
     description: Optional[str] = None
 
-    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
-    owner: Optional["User"] = Relationship(back_populates="playlists")
+    owner_id: Optional[int] = None
+
+class PlaylistFull(PlaylistBase):
+    id: int
+
+class CreatePlaylist(SQLModel):
+    title: str
+    description: Optional[str] = None
+
+class EditPlaylist(SQLModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
 
 
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    first_name: str = Field(index=True)
-    last_name: str = Field(index=True)
-    email: str = Field(unique=True, index=True)
-    username: str = Field(unique=True, index=True)
+class UserBase(SQLModel):
+    name: Optional[str]
+    email: EmailStr
     password: str
-    play_count: Optional[int] = Field(default=0)
 
-    playlists: List[Playlist] = Relationship(back_populates="owner")
+class UserFull(UserBase):
+    id: int
+
+class CreateUser(SQLModel):
+    name: Optional[str] = None
+    email: EmailStr
+    password1: str
+    password2: str
+
+class EditUser(SQLModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class ChangePass(SQLModel):
+    old_password: str
+    new_password: str
 
 
+class UserWithPlaylists(UserFull):
+    playlists: List[PlaylistFull] = []
+
+class PlaylistWithUser(PlaylistFull):
+    owner: Optional[UserFull] = None
+
+
+class TokenSchema(SQLModel):
+    access_token: str
+    refresh_token: str
+
+
+class TokenPayload(SQLModel):
+    sub: int
+    exp: int
+
+
+"""
 class Artist(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
@@ -48,9 +104,11 @@ class Track(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     release_date: str = Field(index=True)
+    play_count: Optional[int] = Field(default=0)
 
     artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
     artist: Optional[Artist] = Relationship(back_populates="artist")
 
     album_id: Optional[int] = Field(default=None, foreign_key="album.id")
     #album: Optional[Album] = Relationship(back_populates="album")
+"""

@@ -3,106 +3,59 @@ from typing import List, Optional
 from sqlmodel import Field, SQLModel, Relationship, AutoString
 
 
-class PlaylistBase(SQLModel):
-    title: str = Field(index=True)
-    description: Optional[str] = None
-
-    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
-
-class Playlist(PlaylistBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-
-    owner: Optional["User"] = Relationship(back_populates="playlists")
-
-class PlaylistCreate(PlaylistBase):
-    pass
-
-class PlaylistRead(PlaylistBase):
-    id: int
-
-class PlaylistUpdate(SQLModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    owner_id: Optional[int] = None
-
-
-class UserBase(SQLModel):
-    name: str = Field(index=True)
-    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
-
-class User(UserBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    password: str = Field(nullable=False)
-
-    playlists: List[Playlist] = Relationship(back_populates="owner")
-
-class UserCreate(UserBase):
-    password1: str
-    password2: str
-
-class UserAuth(SQLModel):
-    email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
-    password: str = Field(nullable=False)
-
-class UserUpdate(SQLModel):
-    name: Optional[str]
-    email: Optional[EmailStr]
-    password: Optional[str]
-
-class UserUpdatePass(SQLModel):
-    old_password: str
-    new_password: str
-
-class UserOut(UserBase):
-    id: int
-
-class UserWithPlaylists(UserOut):
-    playlists: List[Playlist] = []
-
-class PlaylistWithUser(PlaylistRead):
-    owner: Optional[User] = None
-
-
-class TokenSchema(SQLModel):
-    access_token: str
-    refresh_token: str
-
-class TokenPayload(SQLModel):
-    sub: int
-    exp: int
-
-
-"""
 class Artist(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     image_path: str = Field(index=True)
 
     # albums: List["Album"] = Relationship(back_populates="album")
-    albums: List["Album"] = Relationship(back_populates="albums")
+    #albums: List["Album"] = Relationship(back_populates="songs")
 
 
 class Album(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
-    release_date: str = Field(index=True)
     image_path: str = Field(index=True)
+    artist_name: str = Field(index=True)
 
-    artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
-    artist: Optional[Artist] = Relationship(back_populates="artist")
+    #artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
 
-    tracks: List["Track"] = Relationship(back_populates="tracks")
+    # songs: List["Track"] = Relationship(back_populates="albums")
+
+
+class Playlist(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(index=True)
+    description: Optional[str] = None
+
+    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    owner: Optional["User"] = Relationship(back_populates="playlists")
+
+    # tracks: List["Track"] = Relationship(back_populates="playlist")
 
 
 class Track(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
-    release_date: str = Field(index=True)
-    play_count: Optional[int] = Field(default=0)
+    mp3_path: str = Field(index=True)
+    recorded_date: str = Field(index=True)
+    album_name: str = Field(index=True)
+    artist_name: str = Field(index=True)
 
-    artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
-    artist: Optional[Artist] = Relationship(back_populates="artist")
+    # artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
+    # # artist: Optional[Artist] = Relationship(back_populates="artist")
 
-    album_id: Optional[int] = Field(default=None, foreign_key="album.id")
-    #album: Optional[Album] = Relationship(back_populates="album")
-"""
+    # album_id: Optional[int] = Field(default=None, foreign_key="album.id")
+    # album: Optional[Album] = Relationship(back_populates="songs")
+
+    # playlist_id: Optional[int] = Field(default=None, foreign_key="playlist.id")
+    # playlist: Optional[Playlist] = Relationship(back_populates="tracks")
+
+
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+    email: str = Field(unique=True, index=True)
+    password: str
+
+    playlists: List[Playlist] = Relationship(back_populates="owner")
