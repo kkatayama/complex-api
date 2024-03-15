@@ -3,17 +3,109 @@ info:
   title: FastAPI
   version: 0.1.0
 paths:
-  /auth/login:
+  /users:
+    get:
+      tags:
+      - User
+      summary: Get array[] of all users
+      operationId: read_users_users_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/User'
+                type: array
+                title: Response Read Users Users Get
+      security:
+      - JWT: []
     post:
       tags:
-      - Auth
-      summary: Login
-      operationId: login_auth_login_post
+      - User
+      summary: Create a user account
+      operationId: create_user_users_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /sign-up:
+    post:
+      tags:
+      - User
+      summary: Create a user account
+      operationId: create_user_sign_up_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /login:
+    post:
+      tags:
+      - JWT-OAuth2
+      summary: Create access and refresh tokens for user
+      operationId: login_login_post
       requestBody:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Body_login_auth_login_post'
+              $ref: '#/components/schemas/Body_login_login_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /refresh:
+    post:
+      tags:
+      - JWT-OAuth2
+      summary: Refresh jwt API tokens
+      operationId: refresh_token_refresh_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_refresh_token_refresh_post'
         required: true
       responses:
         '200':
@@ -31,9 +123,9 @@ paths:
   /auth/me:
     get:
       tags:
-      - Auth
-      summary: Read Auth Me
-      operationId: read_auth_me_auth_me_get
+      - JWT-OAuth2
+      summary: Get details of currently logged in user
+      operationId: auth_me_auth_me_get
       responses:
         '200':
           description: Successful Response
@@ -46,9 +138,9 @@ paths:
   /auth/me/playlists:
     get:
       tags:
-      - Auth
-      summary: Read Auth Me Playlists
-      operationId: read_auth_me_playlists_auth_me_playlists_get
+      - JWT-OAuth2
+      summary: Include user playlists
+      operationId: auth_me_playlists_auth_me_playlists_get
       responses:
         '200':
           description: Successful Response
@@ -58,32 +150,32 @@ paths:
                 $ref: '#/components/schemas/UserWithPlaylists'
       security:
       - JWT: []
-  /users/:
-    get:
+  /test-access-token:
+    post:
       tags:
-      - Users
-      summary: Read Users
-      operationId: read_users_users__get
+      - JWT-OAuth2
+      summary: Test if the access token is valid
+      operationId: test_access_token_test_access_token_post
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/User'
-                type: array
-                title: Response Read Users Users  Get
+                $ref: '#/components/schemas/TokenPayload'
+      security:
+      - JWT: []
+  /test-refresh-token:
     post:
       tags:
-      - Users
-      summary: Create User
-      operationId: create_user_users__post
+      - JWT-OAuth2
+      summary: Test if the refresh token is valid
+      operationId: test_refresh_token_test_refresh_token_post
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/Body_test_refresh_token_test_refresh_token_post'
         required: true
       responses:
         '200':
@@ -91,19 +183,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/TokenPayload'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /logout:
+    get:
+      tags:
+      - JWT-OAuth2
+      summary: Revoke all tokens and log the user out
+      operationId: logout_logout_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - JWT: []
   /users/{user_id}:
     get:
       tags:
-      - Users
-      summary: Read User
+      - User
+      summary: Get details of a user
       operationId: read_user_users__user_id__get
+      security:
+      - JWT: []
       parameters:
       - name: user_id
         in: path
@@ -124,10 +232,121 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - User
+      summary: Edit user details
+      operationId: edit_user_users__user_id__patch
+      security:
+      - JWT: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditUser'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - User
+      summary: Delete user
+      operationId: delete_user_users__user_id__delete
+      security:
+      - JWT: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /change-password:
+    patch:
+      tags:
+      - User
+      summary: Change password
+      operationId: change_password_change_password_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePass'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - JWT: []
+  /playlists:
+    post:
+      tags:
+      - Playlist
+      summary: Create a playlist
+      operationId: create_playlist_playlists_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaylist'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - JWT: []
   /playlists/:
     get:
       tags:
-      - Playlists
+      - Playlist
       summary: Read Playlists
       operationId: read_playlists_playlists__get
       responses:
@@ -137,39 +356,47 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/PlaylistRead'
+                  $ref: '#/components/schemas/PlaylistFull'
                 type: array
                 title: Response Read Playlists Playlists  Get
-    post:
+      security:
+      - JWT: []
+  /playlists/{playlist_id}:
+    get:
       tags:
-      - Playlists
-      summary: Create Playlist
-      operationId: create_playlist_playlists__post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PlaylistCreate'
+      - Playlist
+      summary: Read Playlist
+      operationId: read_playlist_playlists__playlist_id__get
+      security:
+      - JWT: []
+      parameters:
+      - name: playlist_id
+        in: path
         required: true
+        schema:
+          type: integer
+          title: Playlist Id
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaylistRead'
+                $ref: '#/components/schemas/PlaylistWithUser'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /playlists/{playlist_id}:
+  /playlists/{playlist_id}/tracks:
     get:
       tags:
-      - Playlists
-      summary: Read Playlist
-      operationId: read_playlist_playlists__playlist_id__get
+      - Playlist
+      summary: Read Playlist Tracks
+      operationId: read_playlist_tracks_playlists__playlist_id__tracks_get
+      security:
+      - JWT: []
       parameters:
       - name: playlist_id
         in: path
@@ -192,7 +419,7 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    Body_login_auth_login_post:
+    Body_login_login_post:
       properties:
         grant_type:
           anyOf:
@@ -224,7 +451,138 @@ components:
       required:
       - username
       - password
-      title: Body_login_auth_login_post
+      title: Body_login_login_post
+    Body_refresh_token_refresh_post:
+      properties:
+        grant_type:
+          anyOf:
+          - type: string
+            pattern: password
+          - type: 'null'
+          title: Grant Type
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          title: Password
+        scope:
+          type: string
+          title: Scope
+          default: ''
+        client_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Id
+        client_secret:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Secret
+      type: object
+      required:
+      - username
+      - password
+      title: Body_refresh_token_refresh_post
+    Body_test_refresh_token_test_refresh_token_post:
+      properties:
+        grant_type:
+          anyOf:
+          - type: string
+            pattern: password
+          - type: 'null'
+          title: Grant Type
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          title: Password
+        scope:
+          type: string
+          title: Scope
+          default: ''
+        client_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Id
+        client_secret:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Secret
+      type: object
+      required:
+      - username
+      - password
+      title: Body_test_refresh_token_test_refresh_token_post
+    ChangePass:
+      properties:
+        old_password:
+          type: string
+          title: Old Password
+        new_password:
+          type: string
+          title: New Password
+      type: object
+      required:
+      - old_password
+      - new_password
+      title: ChangePass
+    CreatePlaylist:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+      type: object
+      required:
+      - title
+      title: CreatePlaylist
+    CreateUser:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        email:
+          type: string
+          format: email
+          title: Email
+        password1:
+          type: string
+          title: Password1
+        password2:
+          type: string
+          title: Password2
+      type: object
+      required:
+      - email
+      - password1
+      - password2
+      title: CreateUser
+    EditUser:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        email:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Email
+      type: object
+      title: EditUser
     HTTPValidationError:
       properties:
         detail:
@@ -236,30 +594,11 @@ components:
       title: HTTPValidationError
     Playlist:
       properties:
-        title:
-          type: string
-          title: Title
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Description
-        owner_id:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Owner Id
         id:
           anyOf:
           - type: integer
           - type: 'null'
           title: Id
-      type: object
-      required:
-      - title
-      title: Playlist
-    PlaylistCreate:
-      properties:
         title:
           type: string
           title: Title
@@ -276,8 +615,8 @@ components:
       type: object
       required:
       - title
-      title: PlaylistCreate
-    PlaylistRead:
+      title: Playlist
+    PlaylistFull:
       properties:
         title:
           type: string
@@ -299,7 +638,7 @@ components:
       required:
       - title
       - id
-      title: PlaylistRead
+      title: PlaylistFull
     PlaylistWithUser:
       properties:
         title:
@@ -320,13 +659,26 @@ components:
           title: Id
         owner:
           anyOf:
-          - $ref: '#/components/schemas/User'
+          - $ref: '#/components/schemas/UserFull'
           - type: 'null'
       type: object
       required:
       - title
       - id
       title: PlaylistWithUser
+    TokenPayload:
+      properties:
+        sub:
+          type: integer
+          title: Sub
+        exp:
+          type: integer
+          title: Exp
+      type: object
+      required:
+      - sub
+      - exp
+      title: TokenPayload
     TokenSchema:
       properties:
         access_token:
@@ -342,18 +694,17 @@ components:
       title: TokenSchema
     User:
       properties:
-        name:
-          type: string
-          title: Name
-        email:
-          type: string
-          format: email
-          title: Email
         id:
           anyOf:
           - type: integer
           - type: 'null'
           title: Id
+        name:
+          type: string
+          title: Name
+        email:
+          type: string
+          title: Email
         password:
           type: string
           title: Password
@@ -363,43 +714,50 @@ components:
       - email
       - password
       title: User
-    UserCreate:
+    UserFull:
       properties:
         name:
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
           title: Name
         email:
           type: string
           format: email
           title: Email
-        password1:
+        password:
           type: string
-          title: Password1
-        password2:
-          type: string
-          title: Password2
+          title: Password
+        id:
+          type: integer
+          title: Id
       type: object
       required:
       - name
       - email
-      - password1
-      - password2
-      title: UserCreate
+      - password
+      - id
+      title: UserFull
     UserWithPlaylists:
       properties:
         name:
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
           title: Name
         email:
           type: string
           format: email
           title: Email
+        password:
+          type: string
+          title: Password
         id:
           type: integer
           title: Id
         playlists:
           items:
-            $ref: '#/components/schemas/Playlist'
+            $ref: '#/components/schemas/PlaylistFull'
           type: array
           title: Playlists
           default: []
@@ -407,6 +765,7 @@ components:
       required:
       - name
       - email
+      - password
       - id
       title: UserWithPlaylists
     ValidationError:
