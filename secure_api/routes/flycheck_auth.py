@@ -36,13 +36,6 @@ def create_user(*, db: Session = Depends(get_session), user: CreateUser):
     db.refresh(db_user)
     return db_user
 
-# @auth_router.options("/login", status_code=status.HTTP_200_OK)
-# def login_options():
-#     try:
-#         return Msg(message="success")
-#     except:
-#         raise HTTPException(status_code=404, detail="Not found")
-
 
 @auth_router.post("/login", summary="Create access and refresh tokens for user", response_model=TokenSchema, tags=["JWT-OAuth2"])
 def login(*, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_session)):
@@ -56,11 +49,11 @@ def login(*, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Dep
     refresh_expires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)
     access_token=create_access_token(user.id, access_expires)
     refresh_token=create_refresh_token(user.id, refresh_expires)
-    access_exp = get_access_token(token=access_token).exp
-    refresh_exp = get_refresh_token(token=refresh_token).exp
+    access_expires = str(datetime.fromtimestamp(get_access_token(token=access_token).exp))
+    refresh_expires = str(datetime.fromtimestamp(get_refresh_token(token=refresh_token).exp))
     return TokenSchema(
-        access_token=access_token, access_expires=access_exp,
-        refresh_token=refresh_token, refresh_expires=refresh_exp,
+        access_token=access_token, access_expires=access_expires,
+        refresh_token=refresh_token, refresh_expires=refresh_expires,
         user_id=user.id, name=user.name, email=user.email)
 
 
@@ -75,13 +68,9 @@ def refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
                             detail="Failed to verify token, please login with email + password")
     access_expires = timedelta(configs.ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_expires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)
-    access_token=create_access_token(user.id, access_expires)
-    refresh_token=create_refresh_token(user.id, refresh_expires)
-    access_exp = get_access_token(token=access_token).exp
-    refresh_exp = get_refresh_token(token=refresh_token).exp
     return TokenSchema(
-        access_token=access_token, access_expires=access_exp,
-        refresh_token=refresh_token, refresh_expires=refresh_exp,
+        access_token=create_access_token(user.id, access_expires), access_expires=str(access_expires),
+        refresh_token=create_refresh_token(user.id, refresh_expires), refresh_expires=str(refresh_expires),
         user_id=user.id, name=user.name, email=user.email)
 
 

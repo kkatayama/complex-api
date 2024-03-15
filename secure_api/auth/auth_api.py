@@ -65,7 +65,7 @@ reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login",  scheme_name="JWT")
 c = Console()
 
 
-def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+def get_current_user(token: str = Depends(reuseable_oauth)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -85,7 +85,7 @@ def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depend
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
     return user
 
-def get_refresh_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+def get_refresh_user(token: str = Depends(reuseable_oauth)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:

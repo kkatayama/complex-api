@@ -70,8 +70,12 @@ class PlaylistWithUser(PlaylistFull):
 
 class TokenSchema(SQLModel):
     access_token: str
+    access_expires: int
     refresh_token: str
-
+    refresh_expires: int
+    user_id: int
+    name: str
+    email: EmailStr
 
 class TokenPayload(SQLModel):
     sub: int

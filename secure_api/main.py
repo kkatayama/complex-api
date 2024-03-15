@@ -11,8 +11,12 @@ from secure_api.routes.users import users_router
 from secure_api.routes.playlists import playlists_router
 
 
-app = FastAPI(debug=True)
-
+app = FastAPI(
+    debug=True,
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 @app.on_event("startup")
 def on_startup():
@@ -21,6 +25,29 @@ def on_startup():
 
 
 music_path = Path.cwd().joinpath('secure_api', 'music')
+
+
+
+origins = [
+    "https://music-mvc13j.flutterflow.app",
+    "https://complex.mangoboat.tv",
+    "https://app.flutterflow.io",
+    "http://localhost:8004",
+]
+
+@app.middleware("http")
+async def add_cors_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = ','.join(origins)
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
+
+app.add_middleware(CORSMiddleware,
+                   allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
+)
+
 
 app.include_router(auth_router, prefix="")
 app.include_router(users_router, prefix="")
