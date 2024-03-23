@@ -34,7 +34,7 @@ def edit_user(*, user_id: int, user: EditUser, db: Session = Depends(get_session
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your user")
 
     user_data = user.model_dump(exclude_unset=True)
-    db_user.sqlmodel_update(user_dta)
+    db_user.sqlmodel_update(user_data)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -45,8 +45,6 @@ def edit_user(*, user_id: int, user: EditUser, db: Session = Depends(get_session
 def change_password(*, user: ChangePass, db: Session = Depends(get_session), me: User = Depends(get_current_user)):
     if not verify_password(user.old_password, me.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid old password")
-    if (user_id != me.id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your user")
 
     hashed_password = get_hashed_password(user.new_password)
     me.password = hashed_password

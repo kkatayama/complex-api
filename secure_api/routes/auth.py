@@ -22,7 +22,6 @@ c = Console()
 
 
 @auth_router.post("/sign-up", summary="Create a user account", response_model=User, tags=["User"])
-@auth_router.post("/users", summary="Create a user account", response_model=User, tags=["User"])
 def create_user(*, db: Session = Depends(get_session), user: CreateUser):
     if not secrets.compare_digest(user.password1, user.password2):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
@@ -65,11 +64,11 @@ def login(*, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Dep
 
 
 #security = HTTPBearer()
+# def refresh_token(*, user: User = Depends(get_refresh_user), authorization: Optional[str] = Depends(security)):
 @auth_router.post('/refresh', summary="Refresh jwt API tokens", response_model=TokenSchema, tags=["JWT-OAuth2"])
 def refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
     grant_type = form_data.username
     user = get_refresh_user(token=form_data.password)
-# def refresh_token(*, user: User = Depends(get_refresh_user), authorization: Optional[str] = Depends(security)):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Failed to verify token, please login with email + password")
@@ -89,7 +88,6 @@ def refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
 def auth_me(*, user: User = Depends(get_current_user)):
     return user
 
-
 @auth_router.get("/auth/me/playlists", summary='Include user playlists', response_model=UserWithPlaylists, tags=["JWT-OAuth2"])
 def auth_me_playlists(*, me: User = Depends(get_current_user), db: Session = Depends(get_session)):
     user = db.exec(select(User).where(User.id == me.id)).first()
@@ -108,4 +106,4 @@ def test_refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
 @auth_router.get("/logout", summary="Revoke all tokens and log the user out", tags=["JWT-OAuth2"])
 def logout(*, c_user: User = Depends(get_current_user), r_user: User = Depends(get_refresh_user),
            token: str = Depends(reuseable_oauth)):
-    return dict(c_user = c_user, r_user = r_user, token = token)
+    return dict(c_user=c_user, r_user=r_user, token=token)

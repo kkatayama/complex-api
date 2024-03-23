@@ -59,7 +59,7 @@ def create_refresh_token(user_id, expires_delta: timedelta):
 ###############################################################################
 
 
-reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login",  scheme_name="JWT")
+reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT")
 
 
 c = Console()
@@ -143,6 +143,6 @@ def get_refresh_token(token: str = Depends(reuseable_oauth), db: Session = Depen
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired", headers=headers)
     except (JWTError, ValidationError) as ext:
-        c.print(inspect(ext))
+        c.print(inspect(ext, all=True))
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
     return token_data
