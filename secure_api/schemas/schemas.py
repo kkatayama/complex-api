@@ -1,86 +1,144 @@
+from dateutil.parser import parse
+from datetime import date
 from pydantic import EmailStr
 from typing import List, Optional
 from sqlmodel import SQLModel
 
 
+class ArtistBase(SQLModel):
+    artistName: str
+    artistPhotoURL: str
+
+class ArtistFull(ArtistBase):
+    id: int
+
 class CreateArtist(SQLModel):
-    title: str
-    image_path: str
+    artistName: str
+    artistPhotoURL: str
+
+
+class AlbumBase(SQLModel):
+    albumName: str
+    numSongs: int
+    year: int
+    albumCoverURL: str
+    artistID: int
+
+class AlbumFull(AlbumBase):
+    id: int
 
 class CreateAlbum(SQLModel):
-    title: str
-    image_path: str
-    artist_name: str
+    albumName: str
+    numSongs: int
+    year: int
+    albumCoverURL: str
+
+
+class TrackBase(SQLModel):
+    trackName: str
+    trackNumber: int
+    trackUrl: str
+    recordedDate: str
+    duration: str
+    albumID: int
+    artistID: int
+
+class TrackFull(TrackBase):
+    id: int
 
 class CreateTrack(SQLModel):
-    title: str
-    mp3_path: str
-    recorded_date: str
-    artist_name: str
-    album_name: str
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: date
+    duration: str
 
 
 class PlaylistBase(SQLModel):
-    title: str
-    description: Optional[str] = None
-
-    owner_id: Optional[int] = None
+    playlistName: str
+    playlistLength: int
+    creationDate: date
+    userID: int
 
 class PlaylistFull(PlaylistBase):
     id: int
 
 class CreatePlaylist(SQLModel):
-    title: str
-    description: Optional[str] = None
+    playlistName: str
+    playlistLength: int
+    creationDate: date
 
 class EditPlaylist(SQLModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    playlistName: str
+    playlistLength: int
+    creationDate: date
 
 
 class UserBase(SQLModel):
-    name: Optional[str]
-    email: EmailStr
+    userRole: str
+    username: str
     password: str
+    loginStatus: bool
 
 class UserFull(UserBase):
     id: int
 
 class CreateUser(SQLModel):
-    name: Optional[str] = None
-    email: EmailStr
+    username: str
     password1: str
     password2: str
 
+class LoginUser(SQLModel):
+    username: str
+    password: str
+
 class EditUser(SQLModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    username: str
 
 class ChangePass(SQLModel):
-    old_password: str
-    new_password: str
+    oldPassword: str
+    newPassword: str
+
+
+class ArtistWithAlbumsTracks(ArtistFull):
+    albums: list[AlbumFull] | None = None
+    tracks: list[TrackFull] | None = None
+
+class AlbumWithArtistTracks(AlbumFull):
+    artist: ArtistFull | None = None
+    tracks: list[TrackFull] | None = None
+
+class TrackWithAlbumArtist(TrackFull):
+    album: AlbumFull | None = None
+    artist: ArtistFull | None = None
 
 
 class UserWithPlaylists(UserFull):
-    playlists: List[PlaylistFull] = []
+    playlists: list[PlaylistFull] | None = None
 
 class PlaylistWithUser(PlaylistFull):
-    owner: Optional[UserFull] = None
+    user: UserFull | None = None
+    tracks: list[TrackFull] | None = None
 
 
 class TokenSchema(SQLModel):
-    access_token: str
-    access_expires: int
-    refresh_token: str
-    refresh_expires: int
-    user_id: int
-    name: str
-    email: EmailStr
+    accessToken: str
+    accessExpires: int
+    refreshToken: str
+    refreshExpires: int
+    userID: int
+    username: str
+    userRole: str
+    loginStatus: str
 
 class TokenPayload(SQLModel):
-    sub: int
     exp: int
+    sub: int
+    role: str
+    logged_in: bool
 
+class RenewToken(SQLModel):
+    token: str
 
 """
 class Artist(SQLModel, table=True):

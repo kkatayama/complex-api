@@ -1,14 +1,20 @@
+import secrets
 from typing import List
+from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from secure_api.database.database import get_session
 from secure_api.models.models import User
-from secure_api.schemas.schemas import EditUser, ChangePass, UserWithPlaylists  # , UserUpdate
-from secure_api.auth.auth_api import get_current_user, verify_password, get_hashed_password
+from secure_api.schemas.schemas import (
+    CreateUser, LoginUser, EditUser, ChangePass, UserWithPlaylists, TokenSchema, TokenPayload, RenewToken)
+from secure_api.auth.auth_api import (
+    get_currentUser, get_refreshUser, get_accessToken, get_refreshToken, get_hashed_password,
+    verify_password, create_accessToken, create_refreshToken, reuseable_oauth)
+from secure_api import configs
 
 
-users_router = APIRouter(dependencies=[Depends(get_current_user)])
+users_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
 @users_router.get("/users", summary="Get array[] of all users", response_model=List[User], tags=["User"])
@@ -17,20 +23,20 @@ def read_users(*, db: Session = Depends(get_session)):
     return users
 
 
-@users_router.get("/users/{user_id}", summary="Get details of a user", response_model=UserWithPlaylists, tags=["User"])
-def read_user(*, db: Session = Depends(get_session), user_id: int):
-    user = db.exec(select(User).where(User.id == user_id)).first()
+@users_router.get("/users/{userID}", summary="Get details of a user", response_model=UserWithPlaylists, tags=["User"])
+def read_user(*, db: Session = Depends(get_session), userID: int):
+    user = db.exec(select(User).where(User.id == userID)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 
-@users_router.patch("/users/{user_id}", summary="Edit user details", tags=["User"])
-def edit_user(*, user_id: int, user: EditUser, db: Session = Depends(get_session), me: User = Depends(get_current_user)):
-    db_user = db.get(User, user_id)
+@users_router.patch("/users/{userID}", summary="Edit user details", tags=["User"])
+def edit_user(*, userID: int, user: EditUser, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
+    db_user = db.get(User, userID)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if (user_id != me.id):
+    if (userID != me.id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your user")
 
     user_data = user.model_dump(exclude_unset=True)
@@ -42,7 +48,7 @@ def edit_user(*, user_id: int, user: EditUser, db: Session = Depends(get_session
 
 
 @users_router.patch("/change-password", summary="Change password", tags=["User"])
-def change_password(*, user: ChangePass, db: Session = Depends(get_session), me: User = Depends(get_current_user)):
+def change_password(*, user: ChangePass, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
     if not verify_password(user.old_password, me.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid old password")
 
@@ -54,12 +60,12 @@ def change_password(*, user: ChangePass, db: Session = Depends(get_session), me:
     return me
 
 
-@users_router.delete("/users/{user_id}", summary="Delete user", tags=["User"])
-def delete_user(*, user_id: int, db: Session = Depends(get_session), me: User = Depends(get_current_user)):
-    db_user = db.get(User, user_id)
+@users_router.delete("/users/{userID}", summary="Delete user", tags=["User"])
+def delete_user(*, userID: int, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
+    db_user = db.get(User, userID)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if (user_id != me.id):
+    if (userID != me.id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your user")
 
     db.delete(db_user)

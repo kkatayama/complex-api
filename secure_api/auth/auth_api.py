@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 
 from secure_api.database.database import get_session, engine
 from secure_api.models.models import User
-from secure_api.schemas.schemas import TokenPayload
+from secure_api.schemas.schemas import UserBase, TokenPayload
 from secure_api.configs import JWT_ALGORITHM, JWT_REFRESH_KEY, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
 
 from rich.console import Console
@@ -33,23 +33,23 @@ def get_hashed_password(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return password_context.verify(plain_password, hashed_password)
 
-def create_access_token(user_id, expires_delta: timedelta):
+def create_accessToken(user: User, expires_delta: timedelta):
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = ({"exp": expire, "sub": str(user_id)})
+    to_encode = ({"exp": expire, "sub": str(user.id), "role": user.userRole, "logged_in": user.loginStatus})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(user_id, expires_delta: timedelta):
+def create_refreshToken(user: User, expires_delta: timedelta):
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = ({"exp": expire, "sub": str(user_id)})
+    to_encode = ({"exp": expire, "sub": str(user.id), "role": user.userRole, "logged_in": user.loginStatus})
     encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
@@ -65,7 +65,7 @@ reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT")
 c = Console()
 
 
-def get_current_user(token: str = Depends(reuseable_oauth)):
+def get_currentUser(token: str = Depends(reuseable_oauth)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -85,7 +85,7 @@ def get_current_user(token: str = Depends(reuseable_oauth)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
     return user
 
-def get_refresh_user(token: str = Depends(reuseable_oauth)):
+def get_refreshUser(token: str = Depends(reuseable_oauth)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -119,7 +119,7 @@ def get_refresh_user(token: str = Depends(reuseable_oauth)):
 #         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
 #     return token
 
-def get_access_token(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+def get_accessToken(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -133,7 +133,7 @@ def get_access_token(token: str = Depends(reuseable_oauth), db: Session = Depend
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
     return token_data
 
-def get_refresh_token(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+def get_refreshToken(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:

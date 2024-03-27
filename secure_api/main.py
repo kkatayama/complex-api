@@ -1,4 +1,6 @@
 from pathlib import Path
+import subprocess
+import sys
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,18 +8,22 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.routing import APIRoute
 
 from secure_api.database.database import create_db_and_tables
+from secure_api.database.init_db import insert_tracks
+
 from secure_api.routes.auth import auth_router
 from secure_api.routes.users import users_router
+from secure_api.routes.artists import artists_router
+from secure_api.routes.albums import albums_router
+from secure_api.routes.tracks import tracks_router
 from secure_api.routes.playlists import playlists_router
+from secure_api.routes.guest_user import guest_router
 
 from fastapi_middleware_logger.fastapi_middleware_logger import add_custom_logger
 import logging
 from rich.logging import RichHandler
-#from rich.traceback import install
-#install(show_locals=True, locals_hide_dunder=False)
 
 
-logging.basicConfig(level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler(rich_tracebacks=True)])
+logging.basicConfig(level="DEBUG", format="%(message)s", datefmt="[%X]", handlers=[RichHandler(rich_tracebacks=True)])
 
 
 app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
@@ -27,7 +33,8 @@ app = add_custom_logger(app)
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
-    # create_tracks()
+    insert_tracks()
+    #p = subprocess.run(f'{sys.executable} -m secure_api.database.init_db', shell=True, text=True)
 
 
 # music_path = Path.cwd().joinpath('secure_api', 'music')
@@ -36,7 +43,8 @@ origins = [
     "https://complex.mangoboat.tv",
     "https://api.mangoboat.tv",
     "https://app.flutterflow.io",
-    "http://localhost:8004"]
+    "http://localhost:8004"
+]
 
 
 @app.middleware("http")
@@ -54,7 +62,11 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True
 
 # -- API Routes: auth, users, playlists, tracks, artists, albums
 app.include_router(auth_router, prefix="")
+app.include_router(guest_router, prefix="")
 app.include_router(users_router, prefix="")
+app.include_router(artists_router, prefix="")
+app.include_router(albums_router, prefix="")
+app.include_router(tracks_router, prefix="")
 app.include_router(playlists_router, prefix="")
 
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"

@@ -1,61 +1,72 @@
+from datetime import date
 from pydantic import EmailStr
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from sqlmodel import Field, SQLModel, Relationship, AutoString
 
 
 class Artist(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    image_path: str = Field(index=True)
+    id: int | None = Field(default=None, primary_key=True)
+    artistName: str = Field(index=True)
+    artistPhotoURL: str = Field(index=True)
 
-    # albums: List["Album"] = Relationship(back_populates="album")
-    #albums: List["Album"] = Relationship(back_populates="songs")
+    albums: list["Album"] = Relationship(back_populates="artist")
+    tracks: list["Track"] = Relationship(back_populates="artist")
 
 
 class Album(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    image_path: str = Field(index=True)
-    artist_name: str = Field(index=True)
+    id: int | None = Field(default=None, primary_key=True)
+    albumName: str = Field(index=True)
+    numSongs: int = Field(index=True)
+    year: int = Field(index=True)
+    albumCoverURL: str = Field(index=True)
 
-    #artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
+    artistID: int | None = Field(default=None, foreign_key="artist.id")
 
-    # songs: List["Track"] = Relationship(back_populates="albums")
+    artist: Artist = Relationship(back_populates="albums")
+    tracks: list["Track"] = Relationship(back_populates="album")
 
 
 class Playlist(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    description: Optional[str] = None
+    id: int | None = Field(default=None, primary_key=True)
+    playlistName: str = Field(index=True)
+    playlistLength: int
+    creationDate: date = Field(index=True)
 
-    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
-    owner: Optional["User"] = Relationship(back_populates="playlists")
+    userID: int | None = Field(default=None, foreign_key="user.id")
+    trackID: int | None = Field(default=None, foreign_key="track.id")
 
-    # tracks: List["Track"] = Relationship(back_populates="playlist")
+    user: "User" = Relationship(back_populates="playlists")
+    tracks: list["Track"] | None = Relationship(back_populates="playlist")
 
 
 class Track(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    mp3_path: str = Field(index=True)
-    recorded_date: str = Field(index=True)
-    album_name: str = Field(index=True)
-    artist_name: str = Field(index=True)
+    id: int | None = Field(default=None, primary_key=True)
+    trackName: str = Field(index=True)
+    trackNumber: int
+    trackURL: str = Field(index=True)
+    recordedDate: date = Field(index=True)
+    duration: str
 
-    # artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
-    # # artist: Optional[Artist] = Relationship(back_populates="artist")
+    albumID: int | None = Field(default=None, foreign_key="album.id")
+    artistID: int | None = Field(default=None, foreign_key="artist.id")
 
-    # album_id: Optional[int] = Field(default=None, foreign_key="album.id")
-    # album: Optional[Album] = Relationship(back_populates="songs")
-
-    # playlist_id: Optional[int] = Field(default=None, foreign_key="playlist.id")
-    # playlist: Optional[Playlist] = Relationship(back_populates="tracks")
+    album: Album | None = Relationship(back_populates="tracks")
+    artist: Artist | None  = Relationship(back_populates="tracks")
+    playlist: Playlist | None = Relationship(back_populates="tracks")
 
 
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
-    email: str = Field(unique=True, index=True)
+    id: int | None = Field(default=None, primary_key=True)
+    userRole: str
+    username: str = Field(index=True)
     password: str
+    loginStatus: bool
 
-    playlists: List[Playlist] = Relationship(back_populates="owner")
+    playlists: list[Playlist] | None = Relationship(back_populates="user")
+
+
+class Image(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    resolution: str
+    imageURL: str = Field(index=True)
+    imageType: str
