@@ -13,7 +13,9 @@ from passlib.context import CryptContext
 from secure_api.database.database import get_session, engine
 from secure_api.models.models import User
 from secure_api.schemas.schemas import UserBase, TokenPayload
-from secure_api.configs import JWT_ALGORITHM, JWT_REFRESH_KEY, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
+from secure_api.configs import (
+    JWT_ALGORITHM, JWT_REFRESH_KEY, JWT_SECRET_KEY,
+    ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES)
 
 from rich.console import Console
 from rich import inspect
@@ -33,7 +35,7 @@ def get_hashed_password(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return password_context.verify(plain_password, hashed_password)
 
-def create_accessToken(user: User, expires_delta: timedelta):
+def create_access_token(user: User, expires_delta: timedelta):
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -43,7 +45,7 @@ def create_accessToken(user: User, expires_delta: timedelta):
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-def create_refreshToken(user: User, expires_delta: timedelta):
+def create_refresh_token(user: User, expires_delta: timedelta):
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -119,7 +121,7 @@ def get_refreshUser(token: str = Depends(reuseable_oauth)):
 #         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
 #     return token
 
-def get_accessToken(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+def get_access_token(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -133,7 +135,7 @@ def get_accessToken(token: str = Depends(reuseable_oauth), db: Session = Depends
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
     return token_data
 
-def get_refreshToken(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+def get_refresh_token(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:

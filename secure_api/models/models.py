@@ -10,7 +10,7 @@ class Artist(SQLModel, table=True):
     artistPhotoURL: str = Field(index=True)
 
     albums: list["Album"] = Relationship(back_populates="artist")
-    tracks: list["Track"] = Relationship(back_populates="artist")
+    # tracks: list["Track"] = Relationship(back_populates="artist")
 
 
 class Album(SQLModel, table=True):
@@ -30,13 +30,26 @@ class Playlist(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     playlistName: str = Field(index=True)
     playlistLength: int
-    creationDate: date = Field(index=True)
+    creationDate: str = Field(index=True)
 
     userID: int | None = Field(default=None, foreign_key="user.id")
-    trackID: int | None = Field(default=None, foreign_key="track.id")
+    # trackID: int | None = Field(default=None, foreign_key="track.id")
 
     user: "User" = Relationship(back_populates="playlists")
-    tracks: list["Track"] | None = Relationship(back_populates="playlist")
+    # tracks: list["Track"] | None = Relationship(back_populates="playlists")
+
+
+class PlaylistTrack(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    playlistID: int = Field(index=True)
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+    albumID: int
+    artistID: int
 
 
 class Track(SQLModel, table=True):
@@ -44,15 +57,15 @@ class Track(SQLModel, table=True):
     trackName: str = Field(index=True)
     trackNumber: int
     trackURL: str = Field(index=True)
-    recordedDate: date = Field(index=True)
+    recordedDate: str = Field(index=True)
     duration: str
 
     albumID: int | None = Field(default=None, foreign_key="album.id")
     artistID: int | None = Field(default=None, foreign_key="artist.id")
 
     album: Album | None = Relationship(back_populates="tracks")
-    artist: Artist | None  = Relationship(back_populates="tracks")
-    playlist: Playlist | None = Relationship(back_populates="tracks")
+    # artist: Artist | None  = Relationship(back_populates="tracks")
+    # playlists: list[Playlist] | None = Relationship(back_populates="tracks")
 
 
 class User(SQLModel, table=True):

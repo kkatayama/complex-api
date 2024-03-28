@@ -99,6 +99,7 @@ def insert_tracks():
                 db.add(db_artist)
                 db.commit()
                 db.refresh(db_artist)
+                c.print(db_artist)
             c.print(f'artist: "{artist.artistPhotoURL}"')
 
 
@@ -134,7 +135,7 @@ def insert_tracks():
                     db.add(db_album)
                     db.commit()
                     db.refresh(db_album)
-                c.print(f'album: "{album.albumCoverURL}"')
+                # c.print(f'album: "{album.albumCoverURL}"')
 
 
                 for track_path in sorted(mp3 for mp3 in album_path.glob('**/*.mp3')):
@@ -150,7 +151,7 @@ def insert_tracks():
                         trackName = track_title,
                         trackNumber = track_num,
                         trackURL = mp3_path,
-                        recordedDate = track_date,
+                        recordedDate = str(track_date),
                         duration = track_duration,
 
                         album = db_album,
@@ -163,7 +164,7 @@ def insert_tracks():
                         db.add(db_track)
                         db.commit()
                         db.refresh(db_track)
-                    c.print(f'track: "{track.trackURL}"')
+                    # c.print(f'track: "{track.trackURL}"')
 
 
         # -- Process All Images -- #
@@ -175,8 +176,8 @@ def insert_tracks():
                 db.add(db_img)
                 db.commit()
                 db.refresh(db_img)
-            c.print(f'image: "{img.imageURL}"')
+            # c.print(f'image: "{img.imageURL}"')
 
 
-# if __name__ == '__main__':
-#     insert_tracks()
+#if __name__ == '__main__':
+#    insert_tracks()

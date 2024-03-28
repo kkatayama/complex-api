@@ -10,8 +10,8 @@ from secure_api.models.models import User
 from secure_api.schemas.schemas import (
     LoginUser, EditUser, UserBase, ChangePass, CreateUser, UserWithPlaylists, TokenSchema, TokenPayload, RenewToken)
 from secure_api.auth.auth_api import (
-    get_currentUser, get_refreshUser, get_accessToken, get_refreshToken, get_hashed_password,
-    verify_password, create_accessToken, create_refreshToken, reuseable_oauth)
+    get_currentUser, get_refreshUser, get_access_token, get_refresh_token, get_hashed_password,
+    verify_password, create_access_token, create_refresh_token, reuseable_oauth)
 from secure_api import configs
 from rich.console import Console
 
@@ -21,8 +21,7 @@ auth_router = APIRouter()
 c = Console()
 
 @auth_router.post("/sign-up", summary="Create a user account (via FORM)", response_model=User, tags=["Account-Security"])
-def sign_up(*, username: str = Form(), password1: str = Form(), password2: str = Form(),
-            db: Session = Depends(get_session), user: CreateUser):
+def sign_up(*, db: Session = Depends(get_session), user: CreateUser):
     if not secrets.compare_digest(user.password1, user.password2):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
     if db.exec(select(User).where(User.username == user.username)).first():
@@ -36,34 +35,37 @@ def sign_up(*, username: str = Form(), password1: str = Form(), password2: str =
     return db_user
 
 
-@auth_router.post("/sign-in", summary="Submit credentials and retrieve access toens (via FORM)",
+@auth_router.post("/login", summary="Submit credentials and retrieve access tokens (via FORM)",
                   response_model=TokenSchema, tags=["Account-Security"])
-def sign_in(*, username: str = Form(), password: str = Form(), db: Session = Depends(get_session)):
-    user = db.exec(select(User).where(User.username == username)).first()
+# def login(*, username: str = Form(), password: str = Form(), db: Session = Depends(get_session)):
+def login(*, form_data: OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_session)):
+    user = db.exec(select(User).where(User.username == form_data.username)).first()
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid username")
-    if not verify_password(password, user.password):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid username: already exists!")
+    if not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password")
 
-    # -- Update User Status -- #
+    # # -- Update User Status -- #
     user.loginStatus = True
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    accessExpires = timedelta(configs.ACCESS_TOKEN_EXPIRE_MINUTES)
-    refreshExpires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)
-    accessToken = create_accessToken(user, accessExpires)
-    refreshToken = create_refreshToken(user, refreshExpires)
-    access_exp = get_accessToken(token=accessToken).exp
-    refresh_exp = get_refreshToken(token=refreshToken).exp
+    access_expires = timedelta(configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_expires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(user, access_expires)
+    refresh_token = create_refresh_token(user, refresh_expires)
+    access_exp = get_access_token(token=access_token).exp
+    refresh_exp = get_refresh_token(token=refresh_token).exp
     return TokenSchema(
-        accessToken=accessToken, accessExpires=access_exp, refreshToken=refreshToken, refreshExpires=refresh_exp,
-        userID=user.id, username=user.username, userRole=user.userRole, loginStatus=user.loginStatus)
+        access_token=access_token, access_expires=access_exp,
+        refresh_token=refresh_token, refresh_expires=refresh_exp,
+        userID=user.id, username=user.username,
+        userRole=user.userRole, loginStatus=user.loginStatus)
 
 
 #security = HTTPBearer()
-# def refreshToken(*, user: User = Depends(get_refreshUser), authorization: Optional[str] = Depends(security)):
+# def refresh_token(*, user: User = Depends(get_refreshUser), authorization: Optional[str] = Depends(security)):
 @auth_router.post('/refresh-token', summary="Refresh jwt API tokens (via FORM)",
                   response_model=TokenSchema, tags=["Account-Security"])
 def refresh_token(*, token: str = Form(), db: Session = Depends(get_session)):
@@ -76,14 +78,14 @@ def refresh_token(*, token: str = Form(), db: Session = Depends(get_session)):
         db.refresh(user)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Failed to verify token, please login with username + password")
-    accessExpires = timedelta(configs.ACCESS_TOKEN_EXPIRE_MINUTES)
-    refreshExpires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)
-    accessToken = create_accessToken(user, accessExpires)
-    refreshToken = create_refreshToken(user, refreshExpires)
-    access_exp = get_accessToken(token=accessToken).exp
-    refresh_exp = get_refreshToken(token=refreshToken).exp
+    access_expires = timedelta(configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_expires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(user, access_expires)
+    refresh_token = create_refresh_token(user, refresh_expires)
+    access_exp = get_access_token(token=access_token).exp
+    refresh_exp = get_refresh_token(token=refresh_token).exp
     return TokenSchema(
-        accessToken=accessToken, accessExpires=access_exp, refreshToken=refreshToken, refreshExpires=refresh_exp,
+        access_token=access_token, access_expires=access_exp, refresh_token=refresh_token, refresh_expires=refresh_exp,
         userID=user.id, username=user.username, userRole=user.userRole, loginStatus=user.loginStatus)
 
 
@@ -97,13 +99,13 @@ def auth_me_playlists(*, me: User = Depends(get_currentUser), db: Session = Depe
     return user
 
 @auth_router.post('/test-access-token', summary="Test if the access token is valid", response_model=TokenPayload, tags=["Account-Security"])
-def test_accessToken(*, data: TokenPayload = Depends(get_accessToken)):
+def test_access_token(*, data: TokenPayload = Depends(get_access_token)):
     return data
 
 @auth_router.post('/test-refresh-token', summary="Test if the refresh token is valid", response_model=TokenPayload, tags=["Account-Security"])
-def test_refreshToken(*, form_data: OAuth2PasswordRequestForm = Depends()):
+def test_refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
     grant_type = form_data.username
-    data = get_refreshToken(token=form_data.password)
+    data = get_refresh_token(token=form_data.password)
     return data
 
 @auth_router.get("/logout", summary="Revoke all tokens and log the user out", tags=["Account-Security"])

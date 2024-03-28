@@ -50,14 +50,14 @@ class CreateTrack(SQLModel):
     trackName: str
     trackNumber: int
     trackURL: str
-    recordedDate: date
+    recordedDate: str
     duration: str
 
 
 class PlaylistBase(SQLModel):
     playlistName: str
     playlistLength: int
-    creationDate: date
+    creationDate: str
     userID: int
 
 class PlaylistFull(PlaylistBase):
@@ -65,14 +65,28 @@ class PlaylistFull(PlaylistBase):
 
 class CreatePlaylist(SQLModel):
     playlistName: str
-    playlistLength: int
-    creationDate: date
 
 class EditPlaylist(SQLModel):
     playlistName: str
-    playlistLength: int
-    creationDate: date
 
+
+class PlaylistTrackBase(SQLModel):
+    playlistID: int
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+    albumID: int
+    artistID: int
+
+class PlaylistTrackFull(PlaylistTrackBase):
+    id: int
+
+class AddPlaylistTrack(SQLModel):
+    playlistID: int
+    trackID: int
 
 class UserBase(SQLModel):
     userRole: str
@@ -100,12 +114,15 @@ class ChangePass(SQLModel):
     newPassword: str
 
 
-class ArtistWithAlbumsTracks(ArtistFull):
+class ArtistWithAlbums(ArtistFull):
     albums: list[AlbumFull] | None = None
+
+class ArtistWithAlbumTracks(ArtistFull):
+    artist: ArtistFull | None = None
+    album: AlbumFull | None = None
     tracks: list[TrackFull] | None = None
 
-class AlbumWithArtistTracks(AlbumFull):
-    artist: ArtistFull | None = None
+class AlbumWithTracks(AlbumFull):
     tracks: list[TrackFull] | None = None
 
 class TrackWithAlbumArtist(TrackFull):
@@ -118,18 +135,17 @@ class UserWithPlaylists(UserFull):
 
 class PlaylistWithUser(PlaylistFull):
     user: UserFull | None = None
-    tracks: list[TrackFull] | None = None
 
 
 class TokenSchema(SQLModel):
-    accessToken: str
-    accessExpires: int
-    refreshToken: str
-    refreshExpires: int
+    access_token: str
+    access_expires: int
+    refresh_token: str
+    refresh_expires: int
     userID: int
     username: str
     userRole: str
-    loginStatus: str
+    loginStatus: bool
 
 class TokenPayload(SQLModel):
     exp: int

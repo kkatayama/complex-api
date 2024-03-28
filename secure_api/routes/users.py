@@ -9,8 +9,8 @@ from secure_api.models.models import User
 from secure_api.schemas.schemas import (
     CreateUser, LoginUser, EditUser, ChangePass, UserWithPlaylists, TokenSchema, TokenPayload, RenewToken)
 from secure_api.auth.auth_api import (
-    get_currentUser, get_refreshUser, get_accessToken, get_refreshToken, get_hashed_password,
-    verify_password, create_accessToken, create_refreshToken, reuseable_oauth)
+    get_currentUser, get_refreshUser, get_access_token, get_refresh_token, get_hashed_password,
+    verify_password, create_access_token, create_refresh_token, reuseable_oauth)
 from secure_api import configs
 
 
