@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from secure_api.database.database import get_session, engine
 from secure_api.models.models import User, Playlist, PlaylistTrack, Track, Album, Artist
-from secure_api.schemas.schemas import AddPlaylistTrack, PlaylistTrackFull, CreatePlaylist, PlaylistWithUser
+from secure_api.schemas.schemas import AddPlaylistTrack, PlaylistTrackFull, CreatePlaylist, PlaylistWithUserTracks
 from secure_api.auth.auth_api import get_currentUser
 
 

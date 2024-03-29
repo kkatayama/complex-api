@@ -16,7 +16,7 @@ from secure_api.routes.artists import artists_router
 from secure_api.routes.albums import albums_router
 from secure_api.routes.tracks import tracks_router
 from secure_api.routes.playlists import playlists_router
-from secure_api.routes.playlist_tracks import playlist_tracks_router
+#from secure_api.routes.playlist_tracks import playlist_tracks_router
 from secure_api.routes.guest_user import guest_router
 
 from fastapi_middleware_logger.fastapi_middleware_logger import add_custom_logger
@@ -44,7 +44,8 @@ origins = [
     "https://complex.mangoboat.tv",
     "https://api.mangoboat.tv",
     "https://app.flutterflow.io",
-    "http://localhost:8004"
+    "http://localhost:8004",
+    "*"
 ]
 
 
@@ -62,13 +63,13 @@ async def add_cors_headers(request, call_next):
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 # -- API Routes: auth, users, playlists, tracks, artists, albums
-app.include_router(auth_router, prefix="")
 app.include_router(guest_router, prefix="")
 app.include_router(users_router, prefix="")
 app.include_router(artists_router, prefix="")
 app.include_router(albums_router, prefix="")
 app.include_router(tracks_router, prefix="")
 app.include_router(playlists_router, prefix="")
+app.include_router(auth_router, prefix="")
 # app.include_router(playlist_tracks_router, prefix="")
 
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"

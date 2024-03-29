@@ -37,7 +37,7 @@ class CreateAlbum(SQLModel):
 class TrackBase(SQLModel):
     trackName: str
     trackNumber: int
-    trackUrl: str
+    trackURL: str
     recordedDate: str
     duration: str
     albumID: int
@@ -45,6 +45,20 @@ class TrackBase(SQLModel):
 
 class TrackFull(TrackBase):
     id: int
+
+class TrackExtended(SQLModel):
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+    id: int
+
+    albumID: int
+    album: AlbumFull | None = None
+
+    artistID: int
+    artist: ArtistFull | None = None
 
 class CreateTrack(SQLModel):
     trackName: str
@@ -113,14 +127,25 @@ class ChangePass(SQLModel):
     oldPassword: str
     newPassword: str
 
+class DeleteUser(UserFull):
+    DELETED: bool = True
+
+
+class AlbumTracks(SQLModel):
+    albumName: str
+    numSongs: int
+    year: int
+    albumCoverURL: str
+    artistID: int
+    id: int
+
+    tracks: list[TrackFull] | None = None
 
 class ArtistWithAlbums(ArtistFull):
     albums: list[AlbumFull] | None = None
 
 class ArtistWithAlbumTracks(ArtistFull):
-    artist: ArtistFull | None = None
-    album: AlbumFull | None = None
-    tracks: list[TrackFull] | None = None
+    album: AlbumTracks | None = None
 
 class AlbumWithTracks(AlbumFull):
     tracks: list[TrackFull] | None = None
@@ -133,9 +158,9 @@ class TrackWithAlbumArtist(TrackFull):
 class UserWithPlaylists(UserFull):
     playlists: list[PlaylistFull] | None = None
 
-class PlaylistWithUser(PlaylistFull):
+class PlaylistWithUserTracks(PlaylistFull):
     user: UserFull | None = None
-
+    tracks: list[PlaylistTrackFull] | None = None
 
 class TokenSchema(SQLModel):
     access_token: str

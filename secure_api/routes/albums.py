@@ -11,18 +11,19 @@ from secure_api.auth.auth_api import get_currentUser
 albums_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
-@albums_router.get("/albums/", response_model=List[AlbumFull], tags=["Album"])
-def read_albums(*, db: Session = Depends(get_session)):
+@albums_router.get("/albums",
+                   summary="Get array[] of all albums",
+                   response_model=List[AlbumFull], tags=["Album"])
+def get_albums(*, db: Session = Depends(get_session)):
     albums = db.exec(select(Album)).all()
     return albums
 
-@albums_router.get("/albums/{albumID}", tags=["Album"])
-def read_album(*, db: Session = Depends(get_session), albumID: int):
+@albums_router.get("/album/{albumID}",
+                   summary="Get details of a single album",
+                   response_model=AlbumWithTracks, tags=["Album"])
+def get_album_albumID(*, db: Session = Depends(get_session), albumID: int):
     album = db.get(Album, albumID)
     if not album:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Album not found")
-    tracks = db.exec(select(Track).where(Track.albumID == albumID)).all()
+    return album
 
-    db_album = album.dict()
-    db_album["tracks"] = tracks
-    return db_album

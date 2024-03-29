@@ -6,14 +6,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from secure_api.database.database import get_session, engine
 from secure_api.models.models import User, Playlist, PlaylistTrack, Track, Album, Artist
-from secure_api.schemas.schemas import PlaylistFull, CreatePlaylist, PlaylistWithUser
+from secure_api.schemas.schemas import PlaylistFull, CreatePlaylist, PlaylistWithUserTracks
 from secure_api.auth.auth_api import get_currentUser
 
 
 playlists_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
-@playlists_router.post("/playlists", summary="Create a playlist", response_model=Playlist, tags=["Playlist"])
+@playlists_router.post("/playlists",
+                       summary="Create a playlist",
+                       response_model=Playlist, tags=["Playlist"])
 def create_playlist(*, db: Session = Depends(get_session), playlistName: str, me: User = Depends(get_currentUser)):
     statement = select(Playlist).where(Playlist.userID == me.id).where(Playlist.playlistName == playlistName)
     if db.exec(statement).first():
@@ -26,26 +28,39 @@ def create_playlist(*, db: Session = Depends(get_session), playlistName: str, me
     db.refresh(db_playlist)
     return db_playlist
 
-@playlists_router.get("/playlists", response_model=List[PlaylistFull], tags=["Playlist"])
-def read_playlists(*, db: Session = Depends(get_session)):
+@playlists_router.get("/playlists",
+                      summary="Get array[] of all playlists",
+                      response_model=List[PlaylistFull], tags=["Playlist"])
+def get_playlists(*, db: Session = Depends(get_session)):
     playlists = db.exec(select(Playlist)).all()
     return playlists
 
-@playlists_router.get("/playlists/{playlistID}", tags=["Playlist"])
-def read_playlist(*, db: Session = Depends(get_session), playlistID: int):
+@playlists_router.get("/playlist/{playlistID}",
+                      summary="Get details of a single playlist (with tracks)",
+                      response_model=PlaylistWithUserTracks, tags=["Playlist"])
+def get_playlist_playlistID(*, db: Session = Depends(get_session), playlistID: int):
     playlist = db.get(Playlist, playlistID)
     if not playlist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playlist not found")
     user = db.get(User, playlist.userID)
     tracks = db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlistID)).all()
 
-    db_playlist = playlist.dict()
-    db_playlist["user"] = user.dict()
-    db_playlist["tracks"] = [t.dict() for t in tracks]
+    db_playlist = PlaylistWithUserTracks(**playlist.dict())
+    db_playlist.user = user
+    db_playlist.tracks = tracks
     return db_playlist
+    # user = db.get(User, playlist.userID)
+    # tracks = db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlistID)).all()
 
-@playlists_router.post("/playlists/{playlistID}/addTrack/{trackID}", tags=["Playlist"])
-def create_playlist_tracks(*, playlistID: int, trackID: int, db: Session = Depends(get_session)):
+    # db_playlist = playlist.dict()
+    # db_playlist["user"] = user.dict()
+    # db_playlist["tracks"] = [t.dict() for t in tracks]
+    # return db_playlist
+
+@playlists_router.post("/playlist/{playlistID}/track/{trackID}",
+                       summary="Get single track details in a playlist",
+                       response_model=PlaylistTrack,tags=["Playlist"])
+def add_playlist_playlistID_track_trackID(*, playlistID: int, trackID: int, db: Session = Depends(get_session)):
     playlist = db.get(Playlist, playlistID)
     if not playlist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playlist not found")

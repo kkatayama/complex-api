@@ -33,7 +33,7 @@ def create_user(*, user: CreateUser, db: Session = Depends(get_session)):
     return db_user
 
 
-@guest_router.post("/sign-in", summary="Submit credentials and retrieve access toens (via JSON)",
+@guest_router.post("/sign-in", summary="Submit credentials and retrieve access tokens (via JSON)",
                   response_model=TokenSchema, tags=["User-Guest"])
 def sign_in(*, data: LoginUser, db: Session = Depends(get_session)):
     user = db.exec(select(User).where(User.username == data.username)).first()

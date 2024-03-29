@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from secure_api.database.database import get_session
 from secure_api.models.models import User
 from secure_api.schemas.schemas import (
-    CreateUser, LoginUser, EditUser, ChangePass, UserWithPlaylists, TokenSchema, TokenPayload, RenewToken)
+    CreateUser, LoginUser, EditUser, ChangePass, UserWithPlaylists, DeleteUser, TokenSchema, TokenPayload, RenewToken)
 from secure_api.auth.auth_api import (
     get_currentUser, get_refreshUser, get_access_token, get_refresh_token, get_hashed_password,
     verify_password, create_access_token, create_refresh_token, reuseable_oauth)
@@ -17,22 +17,28 @@ from secure_api import configs
 users_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
-@users_router.get("/users", summary="Get array[] of all users", response_model=List[User], tags=["User"])
-def read_users(*, db: Session = Depends(get_session)):
+@users_router.get("/users",
+                  summary="Get array[] of all users",
+                  response_model=List[User], tags=["User"])
+def get_users(*, db: Session = Depends(get_session)):
     users = db.exec(select(User)).all()
     return users
 
 
-@users_router.get("/users/{userID}", summary="Get details of a user", response_model=UserWithPlaylists, tags=["User"])
-def read_user(*, db: Session = Depends(get_session), userID: int):
+@users_router.get("/user/{userID}",
+                  summary="Get details of a single user",
+                  response_model=UserWithPlaylists, tags=["User"])
+def get_user_userID(*, db: Session = Depends(get_session), userID: int):
     user = db.exec(select(User).where(User.id == userID)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 
-@users_router.patch("/users/{userID}", summary="Edit user details", tags=["User"])
-def edit_user(*, userID: int, user: EditUser, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
+@users_router.patch("/user/{userID}",
+                    summary="Edit user details",
+                    response_model=UserWithPlaylists, tags=["User"])
+def edit_user_userID(*, userID: int, user: EditUser, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
     db_user = db.get(User, userID)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -47,7 +53,9 @@ def edit_user(*, userID: int, user: EditUser, db: Session = Depends(get_session)
     return db_user
 
 
-@users_router.patch("/change-password", summary="Change password", tags=["User"])
+@users_router.patch("/change-password",
+                    summary="Change a user's password",
+                    response_model=UserWithPlaylists, tags=["User"])
 def change_password(*, user: ChangePass, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
     if not verify_password(user.old_password, me.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid old password")
@@ -60,8 +68,10 @@ def change_password(*, user: ChangePass, db: Session = Depends(get_session), me:
     return me
 
 
-@users_router.delete("/users/{userID}", summary="Delete user", tags=["User"])
-def delete_user(*, userID: int, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
+@users_router.delete("/user/{userID}",
+                     summary="Delete a user",
+                     response_model=DeleteUser, tags=["User"])
+def delete_user_userID(*, userID: int, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
     db_user = db.get(User, userID)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -70,4 +80,5 @@ def delete_user(*, userID: int, db: Session = Depends(get_session), me: User = D
 
     db.delete(db_user)
     db.commit()
+    return db_user
     return {"ok": True}
