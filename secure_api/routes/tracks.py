@@ -31,7 +31,7 @@ def get_track_trackID(*, db: Session = Depends(get_session), trackID: int):
     artist = db.get(Artist, artistID)
     album = db.get(Album, albumID)
 
-    db_track = TrackExtended(**track.dict())
+    db_track = TrackExtended(**d_track)
     db_track.artist = artist
     db_track.album = album
     return db_track

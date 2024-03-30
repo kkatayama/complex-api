@@ -54,10 +54,10 @@ class TrackExtended(SQLModel):
     duration: str
     id: int
 
-    albumID: int
+    # albumID: int
     album: AlbumFull | None = None
 
-    artistID: int
+    # artistID: int
     artist: ArtistFull | None = None
 
 class CreateTrack(SQLModel):
@@ -77,12 +77,18 @@ class PlaylistBase(SQLModel):
 class PlaylistFull(PlaylistBase):
     id: int
 
+class PlaylistTest(SQLModel):
+    id: int
+    playlistName: str
+    playlistLength: int
+    creationDate: str
+    userID: int
+
 class CreatePlaylist(SQLModel):
     playlistName: str
 
 class EditPlaylist(SQLModel):
     playlistName: str
-
 
 class PlaylistTrackBase(SQLModel):
     playlistID: int
@@ -101,6 +107,43 @@ class PlaylistTrackFull(PlaylistTrackBase):
 class AddPlaylistTrack(SQLModel):
     playlistID: int
     trackID: int
+
+
+class PlayHistoryBase(SQLModel):
+    userID: int
+    playDate: str
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+
+    albumID: int
+    artistID: int
+
+class PlayHistoryFull(PlayHistoryBase):
+    albumID: int
+    artistID: int
+    entryID: int
+
+class PlayHistoryObj(SQLModel):
+    entryID: int
+    userID: int
+    playDate: str
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+
+    albumID: int
+    artistID: int
+
+class PlayHistoryExtended(PlayHistoryObj):
+    album: AlbumFull | None = None
+    artist: ArtistFull | None = None
 
 class UserBase(SQLModel):
     userRole: str
@@ -158,9 +201,18 @@ class TrackWithAlbumArtist(TrackFull):
 class UserWithPlaylists(UserFull):
     playlists: list[PlaylistFull] | None = None
 
+class UserWithPlaylistsT(UserFull):
+    playlists: list[PlaylistTest] | None = None
+
+class UserWithPlaylistsHistory(UserFull):
+    playlists: list[PlaylistFull] | None = None
+
+
 class PlaylistWithUserTracks(PlaylistFull):
     user: UserFull | None = None
     tracks: list[PlaylistTrackFull] | None = None
+
+
 
 class TokenSchema(SQLModel):
     access_token: str

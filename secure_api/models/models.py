@@ -76,10 +76,27 @@ class User(SQLModel, table=True):
     loginStatus: bool
 
     playlists: list[Playlist] | None = Relationship(back_populates="user")
-
+    playhistory: list["PlayHistory"] | None = Relationship(back_populates="user")
 
 class Image(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     resolution: str
     imageURL: str = Field(index=True)
     imageType: str
+
+
+class PlayHistory(SQLModel, table=True):
+    entryID: int | None = Field(default=None, primary_key=True)
+    userID: int | None = Field(default=None, foreign_key="user.id")
+    playDate: str = Field(index=True)
+    trackID: int | None = Field(default=None, foreign_key="track.id")
+    trackName: str = Field(index=True)
+    trackNumber: int
+    trackURL: str = Field(index=True)
+    recordedDate: str = Field(index=True)
+    duration: str
+
+    albumID: int | None = Field(default=None, foreign_key="album.id")
+    artistID: int | None = Field(default=None, foreign_key="artist.id")
+
+    user: User = Relationship(back_populates="playhistory")

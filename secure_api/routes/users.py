@@ -36,8 +36,8 @@ def get_user_userID(*, db: Session = Depends(get_session), userID: int):
 
 
 @users_router.patch("/user/{userID}",
-                    summary="Edit user details",
-                    response_model=UserWithPlaylists, tags=["User"])
+                    summary="Edit a user's username",
+                    response_model=User, tags=["User"])
 def edit_user_userID(*, userID: int, user: EditUser, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
     db_user = db.get(User, userID)
     if not db_user:
@@ -51,21 +51,6 @@ def edit_user_userID(*, userID: int, user: EditUser, db: Session = Depends(get_s
     db.commit()
     db.refresh(db_user)
     return db_user
-
-
-@users_router.patch("/change-password",
-                    summary="Change a user's password",
-                    response_model=UserWithPlaylists, tags=["User"])
-def change_password(*, user: ChangePass, db: Session = Depends(get_session), me: User = Depends(get_currentUser)):
-    if not verify_password(user.old_password, me.password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid old password")
-
-    hashed_password = get_hashed_password(user.new_password)
-    me.password = hashed_password
-    db.add(me)
-    db.commit()
-    db.refresh(me)
-    return me
 
 
 @users_router.delete("/user/{userID}",

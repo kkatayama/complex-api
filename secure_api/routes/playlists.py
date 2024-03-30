@@ -49,17 +49,11 @@ def get_playlist_playlistID(*, db: Session = Depends(get_session), playlistID: i
     db_playlist.user = user
     db_playlist.tracks = tracks
     return db_playlist
-    # user = db.get(User, playlist.userID)
-    # tracks = db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlistID)).all()
 
-    # db_playlist = playlist.dict()
-    # db_playlist["user"] = user.dict()
-    # db_playlist["tracks"] = [t.dict() for t in tracks]
-    # return db_playlist
 
 @playlists_router.post("/playlist/{playlistID}/track/{trackID}",
-                       summary="Get single track details in a playlist",
-                       response_model=PlaylistTrack,tags=["Playlist"])
+                       summary="Add a single track to a playlist",
+                       response_model=PlaylistTrack, tags=["Playlist"])
 def add_playlist_playlistID_track_trackID(*, playlistID: int, trackID: int, db: Session = Depends(get_session)):
     playlist = db.get(Playlist, playlistID)
     if not playlist:
