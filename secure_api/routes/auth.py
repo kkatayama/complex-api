@@ -1,20 +1,20 @@
 import secrets
-from typing import Optional
-from datetime import datetime, timedelta
-from sqlmodel import Session, select
-from fastapi import APIRouter, Depends, HTTPException, status, Form
-from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
 
+from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from rich.console import Console
+from secure_api import configs
+from secure_api.auth.auth_api import (create_access_token,
+                                      create_refresh_token, get_access_token,
+                                      get_currentUser, get_hashed_password,
+                                      get_refresh_token, get_refreshUser,
+                                      reuseable_oauth, verify_password)
 from secure_api.database.database import get_session
 from secure_api.models.models import User
-from secure_api.schemas.schemas import (
-    LoginUser, EditUser, UserBase, ChangePass, CreateUser, UserWithPlaylists, TokenSchema, TokenPayload, RenewToken)
-from secure_api.auth.auth_api import (
-    get_currentUser, get_refreshUser, get_access_token, get_refresh_token, get_hashed_password,
-    verify_password, create_access_token, create_refresh_token, reuseable_oauth)
-from secure_api import configs
-from rich.console import Console
-
+from secure_api.schemas.schemas import (CreateUser, TokenPayload, TokenSchema,
+                                        UserWithPlaylists)
+from sqlmodel import Session, select
 
 auth_router = APIRouter()
 
@@ -60,7 +60,7 @@ def login(*, form_data: OAuth2PasswordRequestForm=Depends(), db: Session = Depen
     return TokenSchema(
         access_token=access_token, access_expires=access_exp,
         refresh_token=refresh_token, refresh_expires=refresh_exp,
-        userID=user.id, username=user.username,
+        userID=user.userID, username=user.username,
         userRole=user.userRole, loginStatus=user.loginStatus)
 
 
@@ -86,7 +86,7 @@ def refresh_token(*, token: str = Form(), db: Session = Depends(get_session)):
     refresh_exp = get_refresh_token(token=refresh_token).exp
     return TokenSchema(
         access_token=access_token, access_expires=access_exp, refresh_token=refresh_token, refresh_expires=refresh_exp,
-        userID=user.id, username=user.username, userRole=user.userRole, loginStatus=user.loginStatus)
+        userID=user.userID, username=user.username, userRole=user.userRole, loginStatus=user.loginStatus)
 
 
 @auth_router.get("/auth/me", summary='Get details of currently logged in user', response_model=User, tags=["Account-Security"])
@@ -95,7 +95,7 @@ def auth_me(*, user: User = Depends(get_currentUser)):
 
 @auth_router.get("/auth/me/playlists", summary='Include user playlists', response_model=UserWithPlaylists, tags=["Account-Security"])
 def auth_me_playlists(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
-    user = db.exec(select(User).where(User.id == me.id)).first()
+    user = db.exec(select(User).where(User.userID == me.userID)).first()
     return user
 
 @auth_router.post('/test-access-token', summary="Test if the access token is valid", response_model=TokenPayload, tags=["Account-Security"])

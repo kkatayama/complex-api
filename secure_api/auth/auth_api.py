@@ -1,25 +1,19 @@
 from datetime import datetime, timedelta
-from pathlib import Path
-import json
 
-from pydantic import ValidationError
-from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
-
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
-from secure_api.database.database import get_session, engine
-from secure_api.models.models import User
-from secure_api.schemas.schemas import UserBase, TokenPayload
-from secure_api.configs import (
-    JWT_ALGORITHM, JWT_REFRESH_KEY, JWT_SECRET_KEY,
-    ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES)
-
-from rich.console import Console
+from pydantic import ValidationError
 from rich import inspect
-
+from rich.console import Console
+from secure_api.configs import (ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM,
+                                JWT_REFRESH_KEY, JWT_SECRET_KEY,
+                                REFRESH_TOKEN_EXPIRE_MINUTES)
+from secure_api.database.database import engine, get_session
+from secure_api.models.models import User
+from secure_api.schemas.schemas import TokenPayload
+from sqlmodel import Session, select
 
 ###############################################################################
 #                          Password And JWT Functions                         #
@@ -41,7 +35,7 @@ def create_access_token(user: User, expires_delta: timedelta):
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = ({"exp": expire, "sub": str(user.id), "role": user.userRole, "logged_in": user.loginStatus})
+    to_encode = ({"exp": expire, "sub": str(user.userID), "role": user.userRole, "logged_in": user.loginStatus})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
@@ -51,7 +45,7 @@ def create_refresh_token(user: User, expires_delta: timedelta):
     else:
         expire = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = ({"exp": expire, "sub": str(user.id), "role": user.userRole, "logged_in": user.loginStatus})
+    to_encode = ({"exp": expire, "sub": str(user.userID), "role": user.userRole, "logged_in": user.loginStatus})
     encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
@@ -81,10 +75,12 @@ def get_currentUser(token: str = Depends(reuseable_oauth)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
 
     with Session(engine) as db:
-        user = db.exec(select(User).where(User.id == token_data.sub)).first()
+        user = db.exec(select(User).where(User.userID == token_data.sub)).first()
     # user = db.get(User, token_data.sub)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
+    if not user.loginStatus:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not logged in!", headers=headers)
     return user
 
 def get_refreshUser(token: str = Depends(reuseable_oauth)):
@@ -101,10 +97,12 @@ def get_refreshUser(token: str = Depends(reuseable_oauth)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Token", headers=headers)
 
     with Session(engine) as db:
-        user = db.exec(select(User).where(User.id == token_data.sub)).first()
+        user = db.exec(select(User).where(User.userID == token_data.sub)).first()
     # user = db.get(User, token_data.sub)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not find user")
+    if not user.loginStatus:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not logged in!", headers=headers)
     return user
 
 

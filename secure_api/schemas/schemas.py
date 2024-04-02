@@ -5,215 +5,6 @@ from typing import List, Optional
 from sqlmodel import SQLModel
 
 
-class ArtistBase(SQLModel):
-    artistName: str
-    artistPhotoURL: str
-
-class ArtistFull(ArtistBase):
-    id: int
-
-class CreateArtist(SQLModel):
-    artistName: str
-    artistPhotoURL: str
-
-
-class AlbumBase(SQLModel):
-    albumName: str
-    numSongs: int
-    year: int
-    albumCoverURL: str
-    artistID: int
-
-class AlbumFull(AlbumBase):
-    id: int
-
-class CreateAlbum(SQLModel):
-    albumName: str
-    numSongs: int
-    year: int
-    albumCoverURL: str
-
-
-class TrackBase(SQLModel):
-    trackName: str
-    trackNumber: int
-    trackURL: str
-    recordedDate: str
-    duration: str
-    albumID: int
-    artistID: int
-
-class TrackFull(TrackBase):
-    id: int
-
-class TrackExtended(SQLModel):
-    trackName: str
-    trackNumber: int
-    trackURL: str
-    recordedDate: str
-    duration: str
-    id: int
-
-    # albumID: int
-    album: AlbumFull | None = None
-
-    # artistID: int
-    artist: ArtistFull | None = None
-
-class CreateTrack(SQLModel):
-    trackName: str
-    trackNumber: int
-    trackURL: str
-    recordedDate: str
-    duration: str
-
-
-class PlaylistBase(SQLModel):
-    playlistName: str
-    playlistLength: int
-    creationDate: str
-    userID: int
-
-class PlaylistFull(PlaylistBase):
-    id: int
-
-class PlaylistTest(SQLModel):
-    id: int
-    playlistName: str
-    playlistLength: int
-    creationDate: str
-    userID: int
-
-class CreatePlaylist(SQLModel):
-    playlistName: str
-
-class EditPlaylist(SQLModel):
-    playlistName: str
-
-class PlaylistTrackBase(SQLModel):
-    playlistID: int
-    trackID: int
-    trackName: str
-    trackNumber: int
-    trackURL: str
-    recordedDate: str
-    duration: str
-    albumID: int
-    artistID: int
-
-class PlaylistTrackFull(PlaylistTrackBase):
-    id: int
-
-class AddPlaylistTrack(SQLModel):
-    playlistID: int
-    trackID: int
-
-
-class PlayHistoryBase(SQLModel):
-    userID: int
-    playDate: str
-    trackID: int
-    trackName: str
-    trackNumber: int
-    trackURL: str
-    recordedDate: str
-    duration: str
-
-    albumID: int
-    artistID: int
-
-class PlayHistoryFull(PlayHistoryBase):
-    albumID: int
-    artistID: int
-    entryID: int
-
-class PlayHistoryObj(SQLModel):
-    entryID: int
-    userID: int
-    playDate: str
-    trackID: int
-    trackName: str
-    trackNumber: int
-    trackURL: str
-    recordedDate: str
-    duration: str
-
-    albumID: int
-    artistID: int
-
-class PlayHistoryExtended(PlayHistoryObj):
-    album: AlbumFull | None = None
-    artist: ArtistFull | None = None
-
-class UserBase(SQLModel):
-    userRole: str
-    username: str
-    password: str
-    loginStatus: bool
-
-class UserFull(UserBase):
-    id: int
-
-class CreateUser(SQLModel):
-    username: str
-    password1: str
-    password2: str
-
-class LoginUser(SQLModel):
-    username: str
-    password: str
-
-class EditUser(SQLModel):
-    username: str
-
-class ChangePass(SQLModel):
-    oldPassword: str
-    newPassword: str
-
-class DeleteUser(UserFull):
-    DELETED: bool = True
-
-
-class AlbumTracks(SQLModel):
-    albumName: str
-    numSongs: int
-    year: int
-    albumCoverURL: str
-    artistID: int
-    id: int
-
-    tracks: list[TrackFull] | None = None
-
-class ArtistWithAlbums(ArtistFull):
-    albums: list[AlbumFull] | None = None
-
-class ArtistWithAlbumTracks(ArtistFull):
-    album: AlbumTracks | None = None
-
-class AlbumWithTracks(AlbumFull):
-    tracks: list[TrackFull] | None = None
-
-class TrackWithAlbumArtist(TrackFull):
-    album: AlbumFull | None = None
-    artist: ArtistFull | None = None
-
-
-class UserWithPlaylists(UserFull):
-    playlists: list[PlaylistFull] | None = None
-
-class UserWithPlaylistsT(UserFull):
-    playlists: list[PlaylistTest] | None = None
-
-class UserWithPlaylistsHistory(UserFull):
-    playlists: list[PlaylistFull] | None = None
-
-
-class PlaylistWithUserTracks(PlaylistFull):
-    user: UserFull | None = None
-    tracks: list[PlaylistTrackFull] | None = None
-
-
-
 class TokenSchema(SQLModel):
     access_token: str
     access_expires: int
@@ -233,37 +24,217 @@ class TokenPayload(SQLModel):
 class RenewToken(SQLModel):
     token: str
 
-"""
-class Artist(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    image_path: str = Field(index=True)
+class CreateUser(SQLModel):
+    username: str
+    password1: str
+    password2: str
 
-    # albums: List["Album"] = Relationship(back_populates="album")
-    albums: List["Album"] = Relationship(back_populates="albums")
+class UserFull(SQLModel):
+    userID: int
+    userRole: str
+    username: str
+    password: str
+    loginStatus: bool
+
+class LoginUser(SQLModel):
+    username: str
+    password: str
+
+class EditUser(SQLModel):
+    username: str
+
+class ChangePass(SQLModel):
+    oldPassword: str
+    newPassword: str
+
+class DeleteUser(UserFull):
+    DELETED: bool = True
+
+class UserSignOut(SQLModel):
+    userID: int
+    userRole: str
+    username: str
+    password: str
+    loginStatus: bool = False
+
+class ArtistBase(SQLModel):
+    artistName: str
+    artistPhotoURL: str
+
+class ArtistFull(SQLModel):
+    artistID: int
+    artistName: str
+    artistPhotoURL: str
+
+class AlbumBase(SQLModel):
+    albumID: int
+    albumName: str
+    numSongs: int
+    year: int
+    albumCoverURL: str
+
+class AlbumFull(AlbumBase):
+    artistID: int
+
+class TrackBase(SQLModel):
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    genre: str
+    recordedDate: str
+    duration: str
+
+class TrackFull(TrackBase):
+    albumID: int
+    artistID: int
+
+class TrackExtended(TrackBase):
+    artist: ArtistFull | None = None
+    album: AlbumFull | None = None
+
+class AlbumTracks(SQLModel):
+    albumID: int
+    albumName: str
+    numSongs: int
+    year: int
+    albumCoverURL: str
+    #artistID: int
+    tracks: list[TrackFull] | None = None
+
+class PlaylistBase(SQLModel):
+    playlistID: int
+    playlistName: str
+    playlistLength: int
+    creationDate: str
+
+class PlaylistTest(SQLModel):
+    playlistName: str
+    playlistLength: int
+    creationDate: str
+
+class PlaylistTestFull(PlaylistBase):
+    tracks: int
+
+class PlaylistFull(PlaylistBase):
+    userID: int
+
+class PlaylistAll(PlaylistBase):
+    user: UserFull | None = None
+
+class DeletePlaylist(PlaylistBase):
+    DELETED: bool = True
+
+class PlaylistTrackBase(SQLModel):
+    playlistTrackID: int
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+
+class PlaylistTrackFull(PlaylistTrackBase):
+    artistID: int
+    albumID: int
+
+class PlaylistTrackAll(PlaylistTrackBase):
+    artist: ArtistFull | None = None
+    album: AlbumBase | None = None
+
+class CreatePlaylist(SQLModel):
+    playlistName: str
+
+class CreateUserPlaylist(SQLModel):
+    userID: int
+    playlistName: str
+
+class RenamePlaylist(SQLModel):
+    playlistName: str
+
+class AddMyPlaylistTrack(SQLModel):
+    trackID: int
+
+class AddUserPlaylistTrack(SQLModel):
+    userID: int
+    trackID: int
+
+class DeleteMyPlaylistTrack(SQLModel):
+    playlistTrackID: int
+
+class DeletePlaylistTrack(PlaylistTrackBase):
+    DELETED: bool = True
 
 
-class Album(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    release_date: str = Field(index=True)
-    image_path: str = Field(index=True)
+class PlayHistoryBase(SQLModel):
+    playhistoryID: int
+    playDate: str
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
 
-    artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
-    artist: Optional[Artist] = Relationship(back_populates="artist")
+class PlayHistoryFull(PlayHistoryBase):
+    userID: int
+    artistID: int
+    albumID: int
 
-    tracks: List["Track"] = Relationship(back_populates="tracks")
+class PlayHistoryExtended(PlayHistoryBase):
+    user: UserFull | None = None
+    artist: ArtistFull | None = None
+    album: AlbumFull | None = None
 
+class PlayHistoryNoUser(PlayHistoryBase):
+    artist: ArtistFull | None = None
+    album: AlbumFull | None = None
 
-class Track(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(index=True)
-    release_date: str = Field(index=True)
-    play_count: Optional[int] = Field(default=0)
+class PlayHistoryAddMyTrack(SQLModel):
+    trackID: int
 
-    artist_id: Optional[int] = Field(default=None, foreign_key="artist.id")
-    artist: Optional[Artist] = Relationship(back_populates="artist")
+class PlayHistoryAddUserTrack(SQLModel):
+    userID: int
+    trackID: int
 
-    album_id: Optional[int] = Field(default=None, foreign_key="album.id")
-    #album: Optional[Album] = Relationship(back_populates="album")
-"""
+class ArtistWithAlbums(ArtistFull):
+    albums: list[AlbumFull] | None = None
+
+class ArtistWithAlbumTracks(ArtistFull):
+    album: AlbumTracks | None = None
+
+class AlbumWithTracks(AlbumBase):
+    artist: ArtistFull | None = None
+    tracks: list[TrackFull] | None = None
+
+class TrackWithArtistAlbum(TrackExtended):
+    artist: ArtistFull | None = None
+    album: AlbumFull | None = None
+
+class UserWithPlaylists(UserFull):
+    playlists: list[PlaylistFull] | None = None
+
+class UserWithPlaylistsPlayHistory(UserFull):
+    playlists: list[PlaylistFull] | None = None
+    playhistory: list[PlayHistoryFull] | None = None
+
+class PlaylistWithUserTracks(PlaylistBase):
+    user: UserFull | None = None
+    tracks: list[PlaylistTrackFull] | None = None
+
+class PlaylistWithUserTracksAll(PlaylistBase):
+    user: UserFull | None = None
+    tracks: list[PlaylistTrackAll] | None = None
+
+class PlaylistsFull(PlaylistTestFull):
+    tracks: list[PlaylistTrackBase] | None = None
+
+class PlaylistsWithMyTracks(PlaylistBase):
+    artist: ArtistFull | None = None
+
+class PlaylistWithPlaylistTracks(PlaylistAll):
+    tracks: list[PlaylistTrackAll] | None = None
+
+class UserWithPlaylistsPlayHistoryAll(UserFull):
+    playlists: list[PlaylistWithPlaylistTracks] | None = None
+    playhistory: list[PlayHistoryFull] | None = None

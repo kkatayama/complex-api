@@ -1,28 +1,16 @@
 from io import BytesIO
-import PIL.Image
-
-from urllib.parse import urljoin
-from dateutil.parser import parse
-
-from sqlmodel import Session, select
-from fastapi import APIRouter, Depends, HTTPException, status
-
-from secure_api.database.database import get_session
-
-from sqlmodel import Session, create_engine
-from secure_api import configs
-from secure_api.models.models import Artist, Album, Playlist, Track, User, Image
-from secure_api.schemas.schemas import CreateArtist, CreateAlbum, CreateTrack
-
-from pymediainfo import MediaInfo
-
-from rich.console import Console
-from imgcat import imgcat
 from pathlib import Path
-import re
+from urllib.parse import urljoin
 
-
+import PIL.Image
+from dateutil.parser import parse
+from pymediainfo import MediaInfo
+from rich.console import Console
 from rich.traceback import install
+from secure_api import configs
+from secure_api.models.models import Album, Artist, Image, Track
+from sqlmodel import Session, create_engine, select
+
 install(show_locals=True, locals_hide_dunder=False)
 
 def get_year(text):
@@ -115,7 +103,7 @@ def insert_tracks():
                 images.append(Image(
                     resolution = getIMG(secure_api/album_image),
                     imageURL = album_image_url,
-                    imageType = "Album Cover"
+                    imageType = "Album Cover",
                 ))
                 # imgcat(secure_api.joinpath(album_image).read_bytes(), width=20, height=20)
 
@@ -146,16 +134,18 @@ def insert_tracks():
                     track_num = int(track_info.track_name_position)
                     track_date = get_date(track_info.recorded_date)
                     track_duration = track_info.other_duration[0]
+                    genre = str(track_info.genre)
 
                     track = Track(
                         trackName = track_title,
                         trackNumber = track_num,
                         trackURL = mp3_path,
+                        genre = genre,
                         recordedDate = str(track_date),
                         duration = track_duration,
 
                         album = db_album,
-                        artistID = db_artist.id,
+                        artistID = db_artist.artistID,
                     )
                     db_track = Track.model_validate(track)
 

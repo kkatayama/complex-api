@@ -17,6 +17,7 @@ from secure_api.routes.artists import artists_router
 from secure_api.routes.albums import albums_router
 from secure_api.routes.tracks import tracks_router
 from secure_api.routes.playlists import playlists_router
+from secure_api.routes.playhistory import playhistory_router
 from secure_api.routes.auth import auth_router
 
 from fastapi_middleware_logger.fastapi_middleware_logger import add_custom_logger
@@ -70,6 +71,7 @@ app.include_router(artists_router, prefix="")
 app.include_router(albums_router, prefix="")
 app.include_router(tracks_router, prefix="")
 app.include_router(playlists_router, prefix="")
+app.include_router(playhistory_router, prefix="")
 app.include_router(auth_router, prefix="")
 
 
