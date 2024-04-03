@@ -7,8 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.routing import APIRoute
 
+from starlette.responses import HTMLResponse
+
 from secure_api.database.database import create_db_and_tables, get_session
 from secure_api.database.init_db import insert_tracks
+from secure_api.templates.redoc import get_redoc_html
+
 
 from secure_api.routes.guest_user import guest_router
 from secure_api.routes.my import my_router
@@ -28,7 +32,8 @@ from rich.logging import RichHandler
 logging.basicConfig(level="DEBUG", format="%(message)s", datefmt="[%X]", handlers=[RichHandler(rich_tracebacks=True)])
 
 
-app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
+#app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
+app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_url=None)
 app = add_custom_logger(app)
 
 
@@ -40,6 +45,7 @@ def on_startup():
 
 
 # music_path = Path.cwd().joinpath('secure_api', 'music')
+
 origins = [
     "https://music-mvc13j.flutterflow.app",
     "https://complex.mangoboat.tv",
@@ -78,6 +84,12 @@ app.include_router(auth_router, prefix="")
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"
 app.mount("/music", StaticFiles(directory="secure_api/music"), name="music")
 
+@app.get("/redoc", include_in_schema=False)
+def redoc_try_it_out() -> HTMLResponse:
+    # app.openapi_version = "3.0.0"
+    title = app.title + " Redoc with try it out"
+    return get_redoc_html(openapi_url=app.openapi_url, title=title)
+
 
 # -- "read_users_users_get" => "read_users"
 def use_route_names_as_operation_ids(app: FastAPI) -> None:
@@ -92,6 +104,8 @@ def use_route_names_as_operation_ids(app: FastAPI) -> None:
             route.operation_id = route.name  # in this case, 'read_items'
 
 use_route_names_as_operation_ids(app)
+
+
 
 #if __name__ == '__main__':
 #    uvicorn.run(app, host="0.0.0.0", port=8002, log_level="debug")

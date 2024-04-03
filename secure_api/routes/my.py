@@ -5,16 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from secure_api.auth.auth_api import (get_currentUser, get_hashed_password,
                                       verify_password)
 from secure_api.database.database import get_session
-from secure_api.models.models import (Album, Artist, PlayHistory, Playlist,
-                                      PlaylistTrack, Track, User)
-from secure_api.schemas.schemas import (AddMyPlaylistTrack, ChangePass,
-                                        CreatePlaylist, DeleteMyPlaylistTrack,
-                                        DeletePlaylist, DeletePlaylistTrack,
-                                        DeleteUser, EditUser,
-                                        PlayHistoryAddMyTrack,
+from secure_api.models.models import (PlayHistory, Playlist, PlaylistTrack,
+                                      Track, User)
+from secure_api.schemas.schemas import (AddPlaylistTrack, ChangePass,
+                                        CreatePlaylist, DeletePlaylist,
+                                        DeletePlaylistTrack, DeleteUser,
+                                        EditUser, PlayHistoryAddMyTrack,
                                         PlayHistoryExtended, PlayHistoryFull,
-                                        PlaylistBase, PlaylistTrackAll,
-                                        PlaylistTrackFull, PlaylistAll,
+                                        PlaylistAll, PlaylistTrackAll,
                                         PlaylistWithPlaylistTracks,
                                         PlaylistWithUserTracks,
                                         PlaylistWithUserTracksAll,
@@ -82,6 +80,7 @@ def delete_my_user(*, me: User = Depends(get_currentUser), db: Session = Depends
             db.delete(p_track)
         for p_play in db.exec(select(PlayHistory).where(PlayHistory.userID == me.userID)).all():
             db.delete(p_play)
+        db.delete(p)
     db.delete(me)
     db.commit()
     return me
@@ -115,19 +114,6 @@ def get_my_playlists_tracks(*, me: User = Depends(get_currentUser), db: Session 
     playlists = db.exec(select(Playlist).where(Playlist.userID == me.userID)).all()
     return playlists
 
-    # db_playlists = []
-    # for playlist in playlists:
-    #     tracks = db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlist.playlistID)).all()
-
-    #     db_tracks = []
-    #     for track in tracks:
-    #         artist = db.get(Artist, track.artistID)
-    #         album = db.get(Album, track.albumID)
-    #         db_tracks.append(PlaylistTrackAll(**track.dict(), artist=artist, album=album))
-    #     db_playlist = PlaylistWithPlaylistTracks(**playlist.dict(), user=me, tracks=db_tracks)
-    #     db_playlists.append(db_playlist)
-    # return db_playlists
-
 
 @my_router.patch("/my/playlist/{playlistID}", summary="Rename a user's playlist",
                        response_model=Playlist, tags=["My-Playlist"])
@@ -159,10 +145,6 @@ def get_my_playlist_playlistID(*, me: User = Depends(get_currentUser), db: Sessi
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Logged in user does not have access to this playlist")
     return playlist
 
-    # tracks = db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlistID)).all()
-    # db_playlist = PlaylistWithUserTracks(**playlist.dict(), user=me, tracks=tracks)
-    # return db_playlist
-
 
 @my_router.delete("/my/playlist/{playlistID}", summary="Delete a user's playlist",
                response_model=DeletePlaylist, tags=["My-Playlist"])
@@ -182,9 +164,9 @@ def delete_my_playlist_playlistID(*, me: User = Depends(get_currentUser), db: Se
 
 
 @my_router.post("/my/playlist/{playlistID}/tracks", summary="Add a single track to a playlist",
-                       response_model=PlaylistTrackFull, tags=["My-Playlist"])
+                       response_model=PlaylistTrackAll, tags=["My-Playlist"])
 def addTrack_my_playlist_playlistID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
-                                    playlistID: int, data: AddMyPlaylistTrack):
+                                    playlistID: int, data: AddPlaylistTrack):
     playlist = db.get(Playlist, playlistID)
     if not playlist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Playlist not found (playlistID={playlistID})")
@@ -216,21 +198,12 @@ def get_my_playlist_playlistID_tracks(*, me: User = Depends(get_currentUser), db
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Logged in user does not have access to this playlist")
 
     return playlist
-    # tracks = db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlistID)).all()
-
-    # db_tracks = []
-    # for track in tracks:
-    #     artist = db.get(Artist, track.artistID)
-    #     album = db.get(Album, track.albumID)
-    #     db_tracks.append(PlaylistTrackAll(**track.dict(), artist=artist, album=album))
-    # db_playlist = PlaylistWithUserTracksAll(**playlist.dict(), user=me, tracks=db_tracks)
-    # return db_playlist
 
 
 @my_router.delete("/my/playlist/{playlistID}/tracks", summary="Delete a single track from a playlist",
                response_model=DeletePlaylistTrack, tags=["My-Playlist"])
 def delete_my_playlist_playlistID_tracks(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
-                                         playlistID: int, data: DeleteMyPlaylistTrack):
+                                         playlistID: int, data: DeletePlaylistTrack):
     playlist = db.get(Playlist, playlistID)
     if not playlist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Playlist not found (playlistID={playlistID})")
@@ -289,9 +262,3 @@ def get_my_playhistory_playhistoryID(*, me: User = Depends(get_currentUser), db:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can view another user's play history details")
 
     return playhistory
-    # user = db.get(User, playhistory.userID)
-    # artist = db.get(Artist, playhistory.artistID)
-    # album = db.get(Album, playhistory.albumID)
-
-    # db_playhistory = PlayHistoryExtended(**playhistory.dict(), user=user, artist=artist, album=album)
-    # return db_playhistory

@@ -59,6 +59,7 @@ def delete_user_userID(*, userID: int,
             db.delete(p_track)
         for p_play in db.exec(select(PlayHistory).where(PlayHistory.userID == user.userID)).all():
             db.delete(p_play)
+        db.delete(p)
     db.delete(user)
     db.commit()
     return user

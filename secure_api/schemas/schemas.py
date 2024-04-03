@@ -36,6 +36,12 @@ class UserFull(SQLModel):
     password: str
     loginStatus: bool
 
+class UserNoPassword(SQLModel):
+    userID: int
+    userRole: str
+    username: str
+    loginStatus: bool
+
 class LoginUser(SQLModel):
     username: str
     password: str
@@ -93,13 +99,17 @@ class TrackExtended(TrackBase):
     artist: ArtistFull | None = None
     album: AlbumFull | None = None
 
+class AlbumAll(AlbumBase):
+    artist: ArtistFull | None = None
+    tracks: list[TrackBase] | None = None
+
 class AlbumTracks(SQLModel):
     albumID: int
     albumName: str
     numSongs: int
     year: int
     albumCoverURL: str
-    #artistID: int
+    artistID: int
     tracks: list[TrackFull] | None = None
 
 class PlaylistBase(SQLModel):
@@ -108,19 +118,11 @@ class PlaylistBase(SQLModel):
     playlistLength: int
     creationDate: str
 
-class PlaylistTest(SQLModel):
-    playlistName: str
-    playlistLength: int
-    creationDate: str
-
-class PlaylistTestFull(PlaylistBase):
-    tracks: int
-
 class PlaylistFull(PlaylistBase):
     userID: int
 
 class PlaylistAll(PlaylistBase):
-    user: UserFull | None = None
+    user: UserNoPassword | None = None
 
 class DeletePlaylist(PlaylistBase):
     DELETED: bool = True
@@ -152,14 +154,14 @@ class CreateUserPlaylist(SQLModel):
 class RenamePlaylist(SQLModel):
     playlistName: str
 
-class AddMyPlaylistTrack(SQLModel):
+class AddPlaylistTrack(SQLModel):
     trackID: int
 
 class AddUserPlaylistTrack(SQLModel):
     userID: int
     trackID: int
 
-class DeleteMyPlaylistTrack(SQLModel):
+class DeletePlaylistTrack(SQLModel):
     playlistTrackID: int
 
 class DeletePlaylistTrack(PlaylistTrackBase):
@@ -198,7 +200,8 @@ class PlayHistoryAddUserTrack(SQLModel):
     trackID: int
 
 class ArtistWithAlbums(ArtistFull):
-    albums: list[AlbumFull] | None = None
+    albums: list[AlbumBase] | None = None
+
 
 class ArtistWithAlbumTracks(ArtistFull):
     album: AlbumTracks | None = None
@@ -206,6 +209,10 @@ class ArtistWithAlbumTracks(ArtistFull):
 class AlbumWithTracks(AlbumBase):
     artist: ArtistFull | None = None
     tracks: list[TrackFull] | None = None
+
+class ArtistWithAlbumsTracks(ArtistFull):
+    album: AlbumAll | None = None
+
 
 class TrackWithArtistAlbum(TrackExtended):
     artist: ArtistFull | None = None
@@ -218,6 +225,7 @@ class UserWithPlaylistsPlayHistory(UserFull):
     playlists: list[PlaylistFull] | None = None
     playhistory: list[PlayHistoryFull] | None = None
 
+
 class PlaylistWithUserTracks(PlaylistBase):
     user: UserFull | None = None
     tracks: list[PlaylistTrackFull] | None = None
@@ -226,8 +234,9 @@ class PlaylistWithUserTracksAll(PlaylistBase):
     user: UserFull | None = None
     tracks: list[PlaylistTrackAll] | None = None
 
-class PlaylistsFull(PlaylistTestFull):
-    tracks: list[PlaylistTrackBase] | None = None
+
+# class PlaylistsFull(PlaylistTestFull):
+#     tracks: list[PlaylistTrackBase] | None = None
 
 class PlaylistsWithMyTracks(PlaylistBase):
     artist: ArtistFull | None = None
