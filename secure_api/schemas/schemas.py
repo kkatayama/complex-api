@@ -72,6 +72,9 @@ class ArtistFull(SQLModel):
     artistName: str
     artistPhotoURL: str
 
+class ArtistAll(ArtistBase):
+    artistID: int
+
 class AlbumBase(SQLModel):
     albumID: int
     albumName: str
@@ -81,6 +84,9 @@ class AlbumBase(SQLModel):
 
 class AlbumFull(AlbumBase):
     artistID: int
+
+class AlbumAll(AlbumBase):
+    artist: ArtistFull | None = None
 
 class TrackBase(SQLModel):
     trackID: int
@@ -95,13 +101,14 @@ class TrackFull(TrackBase):
     albumID: int
     artistID: int
 
+class TrackAll(TrackFull):
+    artist: ArtistAll | None = None
+    album: AlbumBase | None = None
+
 class TrackExtended(TrackBase):
     artist: ArtistFull | None = None
-    album: AlbumFull | None = None
+    album: AlbumBase | None = None
 
-class AlbumAll(AlbumBase):
-    artist: ArtistFull | None = None
-    tracks: list[TrackBase] | None = None
 
 class AlbumTracks(SQLModel):
     albumID: int
@@ -109,8 +116,8 @@ class AlbumTracks(SQLModel):
     numSongs: int
     year: int
     albumCoverURL: str
-    artistID: int
-    tracks: list[TrackFull] | None = None
+    # artistID: int
+    tracks: list[TrackBase] | None = None
 
 class PlaylistBase(SQLModel):
     playlistID: int
@@ -206,12 +213,15 @@ class ArtistWithAlbums(ArtistFull):
 class ArtistWithAlbumTracks(ArtistFull):
     album: AlbumTracks | None = None
 
-class AlbumWithTracks(AlbumBase):
-    artist: ArtistFull | None = None
-    tracks: list[TrackFull] | None = None
+class AlbumWithTracks(AlbumAll):
+    # artist: ArtistFull | None = None
+    tracks: list[TrackBase] | None = None
+
+class AlbumsWithTracks(AlbumBase):
+    tracks: list[TrackBase] | None = None
 
 class ArtistWithAlbumsTracks(ArtistFull):
-    album: AlbumAll | None = None
+    albums: list[AlbumsWithTracks] | None = None
 
 
 class TrackWithArtistAlbum(TrackExtended):
@@ -227,11 +237,11 @@ class UserWithPlaylistsPlayHistory(UserFull):
 
 
 class PlaylistWithUserTracks(PlaylistBase):
-    user: UserFull | None = None
+    user: UserNoPassword | None = None
     tracks: list[PlaylistTrackFull] | None = None
 
 class PlaylistWithUserTracksAll(PlaylistBase):
-    user: UserFull | None = None
+    user: UserNoPassword | None = None
     tracks: list[PlaylistTrackAll] | None = None
 
 

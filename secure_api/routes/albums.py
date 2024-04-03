@@ -7,20 +7,21 @@ from secure_api.models.models import Album
 from secure_api.schemas.schemas import AlbumFull, AlbumWithTracks
 from sqlmodel import Session, select
 
+
 albums_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
-@albums_router.get("/albums", summary="Get array[] of all albums",
-                   response_model=List[AlbumFull], tags=["Album"])
-def get_albums(*, offset: int = 0, limit: int = Query(default=8, le=1000),
-               db: Session = Depends(get_session)):
+@albums_router.get("/albums", summary="Get array[] of all albums", response_model=List[AlbumFull], tags=["Album"])
+def get_albums(*, db: Session = Depends(get_session),
+               offset: int = 0, limit: int = Query(default=8, le=1000)):
     albums = db.exec(select(Album).offset(offset).limit(limit)).all()
     return albums
 
-@albums_router.get("/album/{albumID}", summary="Get details of a single album",
-                   response_model=AlbumWithTracks, tags=["Album"])
-def get_album_albumID(*, db: Session = Depends(get_session), albumID: int):
+@albums_router.get("/album/{albumID}/tracks", summary="Get info for a single album (with tracks)", tags=["Album"],
+                   response_model=AlbumWithTracks)
+def get_album_albumID(*, db: Session = Depends(get_session),
+                      albumID: int):
     album = db.get(Album, albumID)
     if not album:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Album not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Bad albumID, no Album has (albumID={albumID})")
     return album

@@ -11,6 +11,7 @@ class Artist(SQLModel, table=True):
 
     albums: list["Album"] = Relationship(back_populates="artist")
 
+    song: "Track" = Relationship(back_populates="artist")
     ptrack: "PlaylistTrack" = Relationship(back_populates="artist")
     htrack: "PlayHistory" = Relationship(back_populates="artist")
     # tracks: list["Track"] = Relationship(back_populates="artist")
@@ -46,6 +47,7 @@ class Playlist(SQLModel, table=True):
 
 class PlaylistTrack(SQLModel, table=True):
     playlistTrackID: int | None = Field(default=None, primary_key=True)
+    playlistID: int | None = Field(index=True, foreign_key="playlist.playlistID")
     trackID: int
     trackName: str
     trackNumber: int
@@ -53,7 +55,6 @@ class PlaylistTrack(SQLModel, table=True):
     recordedDate: str
     duration: str
 
-    playlistID: int | None = Field(default=None, foreign_key="playlist.playlistID")
     artistID: int | None = Field(default=None, foreign_key="artist.artistID")
     albumID: int | None = Field(default=None, foreign_key="album.albumID")
 
@@ -95,7 +96,7 @@ class Track(SQLModel, table=True):
     albumID: int | None = Field(default=None, foreign_key="album.albumID")
 
     album: Album | None = Relationship(back_populates="tracks")
-    # artist: Artist | None  = Relationship(back_populates="track")
+    artist: Artist | None  = Relationship(back_populates="song")
     # playlists: list[Playlist] | None = Relationship(back_populates="tracks")
 
 
