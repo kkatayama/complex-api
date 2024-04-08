@@ -10,11 +10,12 @@ class Artist(SQLModel, table=True):
     artistPhotoURL: str = Field(index=True)
 
     albums: list["Album"] = Relationship(back_populates="artist")
+    tracks: list["Track"] = Relationship(back_populates="artist")
+    images: list["Image"] = Relationship(back_populates="artist")
 
-    song: "Track" = Relationship(back_populates="artist")
     ptrack: "PlaylistTrack" = Relationship(back_populates="artist")
     htrack: "PlayHistory" = Relationship(back_populates="artist")
-    # tracks: list["Track"] = Relationship(back_populates="artist")
+
 
 
 class Album(SQLModel, table=True):
@@ -28,6 +29,7 @@ class Album(SQLModel, table=True):
 
     artist: Artist = Relationship(back_populates="albums")
     tracks: list["Track"] = Relationship(back_populates="album")
+    images: list["Image"] | None = Relationship(back_populates="album")
 
     ptrack: "PlaylistTrack" = Relationship(back_populates="album")
     htrack: "PlayHistory" = Relationship(back_populates="album")
@@ -95,9 +97,8 @@ class Track(SQLModel, table=True):
     artistID: int | None = Field(default=None, foreign_key="artist.artistID")
     albumID: int | None = Field(default=None, foreign_key="album.albumID")
 
+    artist: Artist | None = Relationship(back_populates="tracks")
     album: Album | None = Relationship(back_populates="tracks")
-    artist: Artist | None  = Relationship(back_populates="song")
-    # playlists: list[Playlist] | None = Relationship(back_populates="tracks")
 
 
 class User(SQLModel, table=True):
@@ -117,3 +118,8 @@ class Image(SQLModel, table=True):
     imageURL: str = Field(index=True)
     imageType: str
 
+    artistID: int | None = Field(default=None, foreign_key="artist.artistID")
+    albumID: int | None = Field(default=None, foreign_key="album.albumID")
+
+    artist: Artist | None = Relationship(back_populates="images")
+    album: Album | None = Relationship(back_populates="images")

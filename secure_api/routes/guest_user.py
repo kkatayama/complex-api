@@ -21,10 +21,15 @@ guest_router = APIRouter()
 @guest_router.post("/create-user", summary="Create a user account (via JSON)",
                   response_model=User, tags=["User-Guest"])
 def create_user(*, data: CreateUser, db: Session = Depends(get_session)):
+    """
+    Create a user account:
+
+    - You can't sign-in if you don't have an account!
+    """
     if not secrets.compare_digest(data.password1, data.password2):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
+        raise HTTPException(status_code=400, detail="Passwords do not match")
     if db.exec(select(User).where(User.username == data.username)).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with this username already exist")
+        raise HTTPException(status_code=400, detail="User with this username already exist")
 
     password = get_hashed_password(data.password1)
     db_user = User(userRole="Customer", username=data.username, password=password, loginStatus=False)
@@ -37,11 +42,21 @@ def create_user(*, data: CreateUser, db: Session = Depends(get_session)):
 @guest_router.post("/sign-in", summary="Submit credentials and retrieve access tokens (via JSON)",
                   response_model=TokenSchema, tags=["User-Guest"])
 def sign_in(*, data: LoginUser, db: Session = Depends(get_session)):
+    """
+    Sign-in to the backend API:
+
+    - **username**: your username
+    - **password**: your password
+
+    Returns:
+
+    - **Token Details**: save the `access_token` to FlutterFlow to allow authenticated requests
+    """
     user = db.exec(select(User).where(User.username == data.username)).first()
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid username")
+        raise HTTPException(status_code=404, detail="Invalid username")
     if not verify_password(data.password, user.password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password")
+        raise HTTPException(status_code=400, detail="Incorrect password")
 
     # -- Update User Status -- #
     user.loginStatus = True
@@ -64,6 +79,12 @@ def sign_in(*, data: LoginUser, db: Session = Depends(get_session)):
                   response_model=UserSignOut, tags=["User-Guest"])
 def sign_out(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
              request: Request):
+    """
+    Sign-out the currently logged in user.
+
+    - **LoginStatus**: this will set the status to False.
+    - **NOTE**: if you execute this endpoint in the [Interactive Documentation](https://api.mangoboat.tv/doc), you will need to refresh the page afterward in order to complete the sign-out process!
+    """
     user = db.get(User, me.userID)
 
     user.loginStatus = False
@@ -82,7 +103,7 @@ def sign_out(*, me: User = Depends(get_currentUser), db: Session = Depends(get_s
 #         db.add(user)
 #         db.commit()
 #         db.refresh(user)
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+#         raise HTTPException(status_code=401,
 #                             detail="Failed to verify token, please login with username + password")
 #     access_expires = timedelta(configs.ACCESS_TOKEN_EXPIRE_MINUTES)
 #     refresh_expires = timedelta(configs.REFRESH_TOKEN_EXPIRE_MINUTES)

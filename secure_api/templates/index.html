@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <title>Com-Plex API</title>
+</head>
+<body>
+    <center><h1>{{ title }}</h1></center>
+    <div style="height:300px; width:700px; overflow:auto;">
+        <table class="table table-bordered table-light" style="margin-left:auto; margin-right:auto;">
+            <thead>
+                <tr>
+                    {% for column in df.columns %}
+                    <th style="text-align:center">{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in df.itertuples() %}
+                <tr>
+                    {% for cell in row %}
+                    <td style="text-align:center">{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

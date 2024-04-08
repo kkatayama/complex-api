@@ -65,15 +65,12 @@ def insert_tracks():
         secure_api = Path.cwd().joinpath('secure_api')
         music_path = Path.cwd().joinpath('secure_api', 'music')
 
-        for artist_path in music_path.iterdir():
+        for artist_path in sorted(music_path.iterdir()):
             artist_name = artist_path.name
             artist_image = (artist_path / 'poster.jpg').relative_to(secure_api)
             artist_image_url = urljoin(api_url, str(artist_image))
-            images.append(Image(
-                resolution = getIMG(secure_api/artist_image),
-                imageURL = artist_image_url,
-                imageType = "Artist Photo"
-            ))
+            if not (secure_api /artist_image).exists():
+                c.print(f'[red]"{artist_image}"[/] == MISSING')
             # imgcat(secure_api.joinpath(artist_image).read_bytes(), width=20, height=20)
 
             artist = Artist(
@@ -84,14 +81,28 @@ def insert_tracks():
 
             # -- Only add Artist if it doesn't exist -- #
             if db.exec(select(Artist).where(Artist.artistPhotoURL == artist.artistPhotoURL)).first() is None:
+                c.print(f'artist: "{artist.artistPhotoURL}"')
                 db.add(db_artist)
                 db.commit()
                 db.refresh(db_artist)
                 c.print(db_artist)
-            c.print(f'artist: "{artist.artistPhotoURL}"')
+
+                # artistID = db_artist.artistID
+                images.append(Image(
+                    resolution=getIMG(secure_api/artist_image),
+                    imageURL=artist_image_url,
+                    imageType="Artist Photo",
+                    artistID=db_artist.artistID,
+                    albumID=0,
+                    artist=db_artist,
+                    album=None,
+                ))
+            else:
+                break
 
 
-            for album_path in [folder for folder in artist_path.iterdir() if folder.is_dir()]:
+
+            for album_path in sorted(folder for folder in artist_path.iterdir() if folder.is_dir()):
                 album_info = MediaInfo.parse(next(album_path.glob('**/*.mp3'))).general_tracks[0]
                 album_title = album_info.album # album_path.name
                 album_num_tracks = album_info.track_name_total
@@ -100,31 +111,39 @@ def insert_tracks():
                 album_image_url = urljoin(api_url, str(album_image))
                 if not album_num_tracks:
                     album_num_tracks = len(sorted(album_path.glob('**/*.mp3')))
-                images.append(Image(
-                    resolution = getIMG(secure_api/album_image),
-                    imageURL = album_image_url,
-                    imageType = "Album Cover",
-                ))
+                if not (secure_api /album_image).exists():
+                    c.print(f'[red]"{album_image}"[/] == MISSING')
                 # imgcat(secure_api.joinpath(album_image).read_bytes(), width=20, height=20)
 
                 album = Album(
-                    albumName = album_title,
-                    numSongs = album_num_tracks,
-                    year = album_year,
-                    albumCoverURL = album_image_url,
+                    albumName=album_title,
+                    numSongs=album_num_tracks,
+                    year=album_year,
+                    albumCoverURL=album_image_url,
 
                     #artistID=db_artist.id, artist=db_artist
-                    artist = db_artist,
+                    # artistID=artistID,
+                    artist=db_artist,
                 )
                 db_album = Album.model_validate(album)
 
                 # -- Only add Album if it doesn't exist -- #
                 if db.exec(select(Album).where(Album.albumCoverURL == album.albumCoverURL)).first() is None:
+                    c.print(f'album: "{album.albumCoverURL}"')
                     db.add(db_album)
                     db.commit()
                     db.refresh(db_album)
-                # c.print(f'album: "{album.albumCoverURL}"')
+                    # albumID = db_album.albumID
 
+                    images.append(Image(
+                        resolution=getIMG(secure_api/album_image),
+                        imageURL=album_image_url,
+                        imageType="Album Cover",
+                        artistID=db_artist.artistID,
+                        albumID=db_album.albumID,
+                        artist=db_artist,
+                        album=db_album,
+                    ))
 
                 for track_path in sorted(mp3 for mp3 in album_path.glob('**/*.mp3')):
                     track_info = MediaInfo.parse(track_path).general_tracks[0]
@@ -137,24 +156,26 @@ def insert_tracks():
                     genre = str(track_info.genre)
 
                     track = Track(
-                        trackName = track_title,
-                        trackNumber = track_num,
-                        trackURL = mp3_path,
-                        genre = genre,
-                        recordedDate = str(track_date),
-                        duration = track_duration,
+                        trackName=track_title,
+                        trackNumber=track_num,
+                        trackURL=mp3_path,
+                        genre=genre,
+                        recordedDate=str(track_date),
+                        duration=track_duration,
 
-                        album = db_album,
-                        artistID = db_artist.artistID,
+                        #artistID=db_artist.artistID,
+                        # albumID=albumID,
+                        artist=db_artist,
+                        album=db_album if db_album else 0,
                     )
                     db_track = Track.model_validate(track)
 
                     # -- Only add Track if it doesn't exist -- #
                     if db.exec(select(Track).where(Track.trackURL == track.trackURL)).first() is None:
+                        c.print(f'track: "{track.trackURL}"')
                         db.add(db_track)
                         db.commit()
                         db.refresh(db_track)
-                    # c.print(f'track: "{track.trackURL}"')
 
 
         # -- Process All Images -- #
@@ -166,8 +187,8 @@ def insert_tracks():
                 db.add(db_img)
                 db.commit()
                 db.refresh(db_img)
-            # c.print(f'image: "{img.imageURL}"')
+            c.print(f'image: "{img.imageURL}"')
 
 
-#if __name__ == '__main__':
-#    insert_tracks()
+# if __name__ == '__main__':
+#     insert_tracks()

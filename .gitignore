@@ -164,3 +164,4 @@ cython_debug/
 configs.py
 tracks.db
 music/
+db_backups/

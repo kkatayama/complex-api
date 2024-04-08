@@ -24,4 +24,4 @@ def get_track_trackID(*, db: Session = Depends(get_session), trackID: int):
     track = db.get(Track, trackID)
     if not track:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Track not found")
-    return db_track
+    return track

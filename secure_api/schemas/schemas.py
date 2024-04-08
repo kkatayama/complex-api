@@ -101,7 +101,7 @@ class TrackFull(TrackBase):
     albumID: int
     artistID: int
 
-class TrackAll(TrackFull):
+class TrackAll(TrackBase):
     artist: ArtistAll | None = None
     album: AlbumBase | None = None
 
@@ -206,9 +206,28 @@ class PlayHistoryAddUserTrack(SQLModel):
     userID: int
     trackID: int
 
+
+class ImageBase(SQLModel):
+    imageID: int
+    resolution: str
+    imageURL: str
+    imageType: str
+
+class ImageFull(ImageBase):
+    artistID: int
+    albumID: int
+
+class ImageAll(ImageBase):
+    artist: ArtistAll | None = None
+    album: AlbumBase | None = None
+
+class ImagesTable(SQLModel):
+    status: int
+    msg: str
+    data: list[ImageFull] | None = None
+
 class ArtistWithAlbums(ArtistFull):
     albums: list[AlbumBase] | None = None
-
 
 class ArtistWithAlbumTracks(ArtistFull):
     album: AlbumTracks | None = None

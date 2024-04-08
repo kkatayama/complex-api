@@ -1,0 +1,42 @@
+<!doctype html>
+<html class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Com-Plex API</title>
+
+  <link href="/DataTables/datatables.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <h2>{{ title }}</h2>
+
+  {% autoescape false %}
+    {{ table_0 }}
+  <br />
+    {{ table_1 }}
+  <br />
+    {{ table_2 }}
+  <br />
+    {{ table_3 }}
+  <br />
+    {{ table_4 }}
+  <br />
+    {{ table_5 }}
+  <br />
+    {{ table_6 }}
+  <br />
+    {{ table_7 }}
+  <br />
+    {{ table_7 }}
+  {% endautoescape %}
+
+  <script type="text/javascript" src="/DataTables/datatables.min.js"></script>
+  <script>
+    $(document).ready(function() {
+        $('table').DataTable();
+    });
+  </script>
+
+
+</body>
+</html>
