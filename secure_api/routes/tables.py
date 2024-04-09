@@ -22,7 +22,7 @@ def genTable(records, caption, count=0):
     html = re.sub(r'(https://api.mangoboat.tv/music/.+(poster|cover).jpg)', r'<img src="\1" height="100"></img>', html)
     html = re.sub(r'(https://api.mangoboat.tv/music/.+\.mp3)', r'<audio controls src="\1"></audio>', html)
     html = html.replace('<th>&nbsp;</th>', '<th>index</th>')
-    html = html.replace('<table>', f'<table id="{table_id}" class="display" style="width:100%">')
+    html = html.replace('<table>', f'<table id="{table_id}" class="dataTable display compact hover" style="width:100%">')
     # html = html.replace('<caption>', '<caption class="mytable caption">')
     # with open(table_id+'.html', 'w') as f:
     #     f.write(html)

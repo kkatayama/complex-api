@@ -15,6 +15,7 @@ class Artist(SQLModel, table=True):
 
     ptrack: "PlaylistTrack" = Relationship(back_populates="artist")
     htrack: "PlayHistory" = Relationship(back_populates="artist")
+    ftrack: "Favorite" = Relationship(back_populates="artist")
 
 
 
@@ -33,6 +34,7 @@ class Album(SQLModel, table=True):
 
     ptrack: "PlaylistTrack" = Relationship(back_populates="album")
     htrack: "PlayHistory" = Relationship(back_populates="album")
+    ftrack: "Favorite" = Relationship(back_populates="album")
 
 
 class Playlist(SQLModel, table=True):
@@ -85,6 +87,27 @@ class PlayHistory(SQLModel, table=True):
     album: Album | None = Relationship(back_populates="htrack")
 
 
+class Favorite(SQLModel, table=True):
+    favoriteID: int | None = Field(default=None, primary_key=True)
+    userID: int | None = Field(default=None, foreign_key="user.userID")
+    addDate: str = Field(index=True)
+    trackID: int | None = Field(default=None, foreign_key="track.trackID")
+    trackName: str = Field(index=True)
+    trackNumber: int
+    trackURL: str = Field(index=True)
+    recordedDate: str = Field(index=True)
+    duration: str
+
+    artistID: int | None = Field(default=None, foreign_key="artist.artistID")
+    albumID: int | None = Field(default=None, foreign_key="album.albumID")
+
+    user: "User" = Relationship(back_populates="favorites")
+
+    artist: Artist | None = Relationship(back_populates="ftrack")
+    album: Album | None = Relationship(back_populates="ftrack")
+
+
+
 class Track(SQLModel, table=True):
     trackID: int | None = Field(default=None, primary_key=True)
     trackName: str = Field(index=True)
@@ -110,6 +133,7 @@ class User(SQLModel, table=True):
 
     playlists: list[Playlist] | None = Relationship(back_populates="user")
     playhistory: list[PlayHistory] | None = Relationship(back_populates="user")
+    favorites: list[Favorite] | None = Relationship(back_populates="user")
 
 
 class Image(SQLModel, table=True):

@@ -2,6 +2,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from rich import inspect
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -94,12 +96,13 @@ app.include_router(images_router, prefix="")
 app.include_router(tables_router, prefix="")
 app.include_router(auth_router, prefix="")
 
-
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"
 app.mount("/music", StaticFiles(directory="secure_api/music"), name="music")
 
 # -- DataTables Path
-app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
+#app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
+
+app.mount("/css", StaticFiles(directory="secure_api/css"), name="css")
 
 @app.get("/redoc", include_in_schema=False)
 def redoc_try_it_out() -> HTMLResponse:

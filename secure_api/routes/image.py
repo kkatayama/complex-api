@@ -26,11 +26,11 @@ def get_images2(*, db: Session = Depends(get_session),
     return {"status": 0, "msg": "", "data": images}
 
 
-@images_router.get("/image/{imageID}", summary="Get details of a single image",  tags=["Image"],
+@images_router.get("/image/{imageID}", summary="Get details of a single image", tags=["Image"],
                    response_model=ImageAll, response_model_exclude_none=True)
 def get_image_imageID(*, db: Session = Depends(get_session),
                       imageID: int):
     image = db.get(Image, imageID)
     if not image:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
     return image

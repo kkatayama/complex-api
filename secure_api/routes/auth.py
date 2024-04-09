@@ -66,7 +66,7 @@ def login(*, form_data: OAuth2PasswordRequestForm=Depends(), db: Session = Depen
 
 #security = HTTPBearer()
 # def refresh_token(*, user: User = Depends(get_refreshUser), authorization: Optional[str] = Depends(security)):
-@auth_router.post('/refresh-token', summary="Refresh jwt API tokens (via FORM)",
+@auth_router.post("/refresh-token", summary="Refresh jwt API tokens (via FORM)",
                   response_model=TokenSchema, tags=["Account-Security"])
 def refresh_token(*, token: str = Form(), db: Session = Depends(get_session)):
     # grant_type = username
@@ -89,20 +89,20 @@ def refresh_token(*, token: str = Form(), db: Session = Depends(get_session)):
         userID=user.userID, username=user.username, userRole=user.userRole, loginStatus=user.loginStatus)
 
 
-@auth_router.get("/auth/me", summary='Get details of currently logged in user', response_model=User, tags=["Account-Security"])
+@auth_router.get("/auth/me", summary="Get details of currently logged in user", response_model=User, tags=["Account-Security"])
 def auth_me(*, user: User = Depends(get_currentUser)):
     return user
 
-@auth_router.get("/auth/me/playlists", summary='Include user playlists', response_model=UserWithPlaylists, tags=["Account-Security"])
+@auth_router.get("/auth/me/playlists", summary="Include user playlists", response_model=UserWithPlaylists, tags=["Account-Security"])
 def auth_me_playlists(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
     user = db.exec(select(User).where(User.userID == me.userID)).first()
     return user
 
-@auth_router.post('/test-access-token', summary="Test if the access token is valid", response_model=TokenPayload, tags=["Account-Security"])
+@auth_router.post("/test-access-token", summary="Test if the access token is valid", response_model=TokenPayload, tags=["Account-Security"])
 def test_access_token(*, data: TokenPayload = Depends(get_access_token)):
     return data
 
-@auth_router.post('/test-refresh-token', summary="Test if the refresh token is valid", response_model=TokenPayload, tags=["Account-Security"])
+@auth_router.post("/test-refresh-token", summary="Test if the refresh token is valid", response_model=TokenPayload, tags=["Account-Security"])
 def test_refresh_token(*, form_data: OAuth2PasswordRequestForm = Depends()):
     grant_type = form_data.username
     data = get_refresh_token(token=form_data.password)

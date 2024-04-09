@@ -5,13 +5,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from secure_api.auth.auth_api import (get_currentUser, get_hashed_password,
                                       verify_password)
 from secure_api.database.database import get_session
-from secure_api.models.models import (PlayHistory, Playlist, PlaylistTrack,
+from secure_api.models.models import (PlayHistory, Favorite, Playlist, PlaylistTrack,
                                       Track, User)
 from secure_api.schemas.schemas import (AddPlaylistTrack, ChangePass,
                                         CreatePlaylist, DeletePlaylist,
                                         DeletePlaylistTrack, DeleteUser,
+                                        DeletedPlaylistTrack,
                                         EditUser, PlayHistoryAddMyTrack,
                                         PlayHistoryExtended, PlayHistoryFull,
+                                        FavoriteFull, FavoriteExtended,
+                                        FavoriteAddMyTrack,
+                                        FavoriteDeleteTrack,
+                                        FavoriteDeletedTrack,
                                         PlaylistAll, PlaylistTrackAll,
                                         PlaylistWithPlaylistTracks,
                                         PlaylistWithUserTracks,
@@ -91,7 +96,7 @@ def delete_my_user(*, me: User = Depends(get_currentUser), db: Session = Depends
 def create_my_playlist(*, db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                        data: CreatePlaylist):
     if db.exec(select(Playlist).where(Playlist.userID == me.userID).where(Playlist.playlistName == data.playlistName)).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'You already have a Playlist titled: "{data.playlistName}"')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You already have a Playlist titled: '{data.playlistName}'")
 
     date = str(datetime.now().date())
     db_playlist = Playlist(playlistName=data.playlistName, playlistLength=0, creationDate=date, userID=me.userID)
@@ -123,7 +128,7 @@ def rename_my_playlist_playlistID(*, db: Session = Depends(get_session), me: Use
     if not playlist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Playlist not found (playlistID={playlistID})")
     if db.exec(select(Playlist).where(Playlist.playlistName == data.playlistName)).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'You already have a Playlist titled: "{data.playlistName}"')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You already have a Playlist titled: '{data.playlistName}'")
     if ((playlist.userID != me.userID) and (me.userRole != "Administrator")):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Logged in user does not have access to this playlist")
 
@@ -201,7 +206,7 @@ def get_my_playlist_playlistID_tracks(*, me: User = Depends(get_currentUser), db
 
 
 @my_router.delete("/my/playlist/{playlistID}/tracks", summary="Delete a single track from a playlist",
-               response_model=DeletePlaylistTrack, tags=["My-Playlist"])
+               response_model=DeletedPlaylistTrack, tags=["My-Playlist"])
 def delete_my_playlist_playlistID_tracks(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
                                          playlistID: int, data: DeletePlaylistTrack):
     playlist = db.get(Playlist, playlistID)
@@ -243,7 +248,6 @@ def get_my_play_history(*, me: User = Depends(get_currentUser), db: Session = De
     playhistory = db.exec(select(PlayHistory).where(PlayHistory.userID == me.userID)).all()
     return playhistory
 
-
 @my_router.get("/my/play-history-tracks", summary="Get array[] of playhistory for currently logged in user (with tracks expanded)",
                response_model=List[PlayHistoryExtended], tags=["My-PlayHistory"])
 def get_my_play_history_tracks(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
@@ -262,3 +266,60 @@ def get_my_playhistory_playhistoryID(*, me: User = Depends(get_currentUser), db:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can view another user's play history details")
 
     return playhistory
+
+
+@my_router.post("/my/favorites", summary="Add a track to logged in user's favorites",
+                response_model=Favorite, tags=["My-Favorites"])
+def addTrack_my_favorites(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                            data: FavoriteAddMyTrack):
+    track = db.get(Track, data.trackID)
+    if not track:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Track not found (trackID={data.trackID})")
+
+    date = str(datetime.now().date())
+    db_favorite_entry = Favorite(userID=me.userID, addDate=date, **track.dict())
+    db.add(db_favorite_entry)
+    db.commit()
+    db.refresh(db_favorite_entry)
+    return db_favorite_entry
+
+
+@my_router.get("/my/favorites", summary="Get array[] of favorites for currently logged in user",
+               response_model=List[FavoriteFull], tags=["My-Favorites"])
+def get_my_favorites(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+    favorites = db.exec(select(Favorite).where(Favorite.userID == me.userID)).all()
+    return favorites
+
+
+@my_router.delete("/my/favorites/{favoriteID}", summary="Delete a single track from favorites",
+                  response_model=FavoriteDeletedTrack, tags=["My-Favorites"])
+def delete_my_favorites_favoriteID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                                   favoriteID: int):
+    favorite = db.get(Favorite, favoriteID)
+    if not favorite:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Favorite not found (favoriteID={favoriteID})")
+    if ((me.userID != favorite.userID) and (me.userRole != "Administrator")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete another user's favorites")
+    db.delete(favorite)
+    db.commit()
+    return favorite
+
+
+@my_router.get("/my/favorites-tracks", summary="Get array[] of favorite for currently logged in user (with tracks expanded)",
+               response_model=List[FavoriteExtended], tags=["My-Favorites"])
+def get_my_favorites_tracks(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+    favorites = db.exec(select(Favorite).where(Favorite.userID == me.userID)).all()
+    return favorites
+
+
+@my_router.get("/my/favorites/{favoriteID}", summary="Get details of a favorite entry for currently logged in user",
+               response_model=FavoriteExtended, tags=["My-Favorites"])
+def get_my_favorite_favoriteID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                                     favoriteID: int):
+    favorite = db.get(Favorite, favoriteID)
+    if not favorite:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Favorite not found (favoriteID={favoriteID})")
+    if ((me.userID != favorite.userID) and (me.userRole != "Administrator")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can view another user's play history details")
+
+    return favorite

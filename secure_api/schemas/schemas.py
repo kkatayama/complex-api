@@ -171,7 +171,7 @@ class AddUserPlaylistTrack(SQLModel):
 class DeletePlaylistTrack(SQLModel):
     playlistTrackID: int
 
-class DeletePlaylistTrack(PlaylistTrackBase):
+class DeletedPlaylistTrack(PlaylistTrackBase):
     DELETED: bool = True
 
 
@@ -206,6 +206,34 @@ class PlayHistoryAddUserTrack(SQLModel):
     userID: int
     trackID: int
 
+class FavoriteBase(SQLModel):
+    favoriteID: int
+    addDate: str
+    trackID: int
+    trackName: str
+    trackNumber: int
+    trackURL: str
+    recordedDate: str
+    duration: str
+
+class FavoriteFull(FavoriteBase):
+    userID: int
+    artistID: int
+    albumID: int
+
+class FavoriteExtended(FavoriteBase):
+    user: UserFull | None = None
+    artist: ArtistFull | None = None
+    album: AlbumFull | None = None
+
+class FavoriteAddMyTrack(SQLModel):
+    trackID: int
+
+class FavoriteDeleteTrack(SQLModel):
+    favoriteID: int
+
+class FavoriteDeletedTrack(FavoriteBase):
+    DELETE: bool = True
 
 class ImageBase(SQLModel):
     imageID: int
@@ -253,6 +281,7 @@ class UserWithPlaylists(UserFull):
 class UserWithPlaylistsPlayHistory(UserFull):
     playlists: list[PlaylistFull] | None = None
     playhistory: list[PlayHistoryFull] | None = None
+    favorites: list[FavoriteFull] | None = None
 
 
 class PlaylistWithUserTracks(PlaylistBase):
@@ -276,3 +305,4 @@ class PlaylistWithPlaylistTracks(PlaylistAll):
 class UserWithPlaylistsPlayHistoryAll(UserFull):
     playlists: list[PlaylistWithPlaylistTracks] | None = None
     playhistory: list[PlayHistoryFull] | None = None
+    favorites: list[FavoriteFull] | None = None

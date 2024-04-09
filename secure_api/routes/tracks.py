@@ -17,8 +17,7 @@ def get_tracks(*, db: Session = Depends(get_session),
     tracks = db.exec(select(Track).offset(offset).limit(limit)).all()
     return tracks
 
-@tracks_router.get("/track/{trackID}",
-                   summary="Get details of a single track",
+@tracks_router.get("/track/{trackID}", summary="Get details of a single track",
                    response_model=TrackAll, tags=["Track"])
 def get_track_trackID(*, db: Session = Depends(get_session), trackID: int):
     track = db.get(Track, trackID)
