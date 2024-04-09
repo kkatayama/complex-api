@@ -166,3 +166,4 @@ tracks.db
 music/
 music_test/
 db_backups/
+.DS_Store
