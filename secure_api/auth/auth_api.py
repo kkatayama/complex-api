@@ -24,12 +24,21 @@ password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_hashed_password(password: str):
+    """
+    Salt + hash a given password using bcrypt
+    """
     return password_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str):
+    """
+    Verify the user submitted password matches the hashed password
+    """
     return password_context.verify(plain_password, hashed_password)
 
 def create_access_token(user: User, expires_delta: timedelta):
+    """
+    Generate an access token for successfully logged in users
+    """
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -40,6 +49,9 @@ def create_access_token(user: User, expires_delta: timedelta):
     return encoded_jwt
 
 def create_refresh_token(user: User, expires_delta: timedelta):
+    """
+    Generate an access token for successfully logged in users
+    """
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -62,6 +74,9 @@ c = Console()
 
 
 def get_currentUser(token: str = Depends(reuseable_oauth)):
+    """
+    Validate user access token and authorization
+    """
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -84,6 +99,9 @@ def get_currentUser(token: str = Depends(reuseable_oauth)):
     return user
 
 def get_refreshUser(token: str = Depends(reuseable_oauth)):
+    """
+    Validate user refresh token and authorization
+    """
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -120,6 +138,9 @@ def is_token_revoked(token: str = Depends(reuseable_oauth)):
     return token
 
 def get_access_token(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+    """
+    Validate and decode user access token
+    """
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
@@ -134,6 +155,9 @@ def get_access_token(token: str = Depends(reuseable_oauth), db: Session = Depend
     return token_data
 
 def get_refresh_token(token: str = Depends(reuseable_oauth), db: Session = Depends(get_session)):
+    """
+    Validate and decode user refresh token
+    """
     headers={"WWW-Authenticate": "Bearer"}
     # -- Verify Token --#
     try:
