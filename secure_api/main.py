@@ -65,7 +65,12 @@ sentry_sdk.init(
 #app = add_custom_logger(app)
 app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_url=None,
               title="Com-Plex Backend API", description=description, version="0.0.1",
-              license_info={"name": "MIT License", "url": "https://opensource.org/license/mit"})
+              license_info={"name": "MIT License", "url": "https://opensource.org/license/mit"},
+              servers=[
+                  {"url": "https://api.mangoboat.tv", "description": "Staging environment"},
+                  {"url": "https://api.mangoboat.tv", "description": "Production environment"},
+              ],
+)
 
 
 @app.on_event("startup")
