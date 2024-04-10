@@ -32,11 +32,19 @@ These functions are use to implement the OAuth2 JWT Token Security Model
 
 * They **Guest-User** functions implement a simplified version of OAuth2 JWT and is ready for use with Flutterflow!
 
-## /tables
+## "/tables"
 
 **This endpoint was added for debugging purposes**
 
 Vist this enpoint: [https://api.mangoboat.tv/tables](https://api.mangoboat.tv/tables) to view all of the Database Tables
 
 * These tables are actively updated but require **refreshing the browser page** to load recent changes.
+
+## Alternative Documentation
+
+[https://api.mangoboat.tv/redoc](https://api.mangoboat.tv/redoc)
+
+
+
+
 """
