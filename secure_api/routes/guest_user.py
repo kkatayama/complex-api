@@ -14,6 +14,7 @@ from secure_api.models.models import User
 from secure_api.schemas.schemas import (CreateUser, LoginUser, RenewToken,
                                         UserSignOut, TokenSchema)
 from sqlmodel import Session, select
+from pydantic import ValidationError
 
 guest_router = APIRouter()
 
@@ -32,7 +33,8 @@ def create_user(*, data: CreateUser, db: Session = Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with this username already exist")
 
     password = get_hashed_password(data.password1)
-    db_user = User(userRole="Customer", username=data.username, password=password, loginStatus=False)
+    user = User(userRole="Customer", username=data.username, password=password, loginStatus=False)
+    db_user = User.model_validate(user)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -98,7 +100,7 @@ def sign_out(*, me: User = Depends(get_currentUser), db: Session = Depends(get_s
                    response_model=TokenSchema, tags=["User-Guest"], )
 def renew_token(*, data: RenewToken, db: Session = Depends(get_session)):
     # grant_type = data.username
-    user = get_refreshUser(token=data.password)
+    user = get_refreshUser(token=data.access_token)
     if user is None:
         user.loginStatus = False
         db.add(user)

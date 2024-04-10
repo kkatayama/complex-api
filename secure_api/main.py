@@ -4,10 +4,14 @@ import sys
 
 from rich import inspect
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.routing import APIRoute
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.encoders import jsonable_encoder
+
 
 from starlette.responses import HTMLResponse
 
@@ -24,11 +28,30 @@ from secure_api.routes.albums import albums_router
 from secure_api.routes.tracks import tracks_router
 from secure_api.routes.playlists import playlists_router
 from secure_api.routes.playhistory import playhistory_router
+from secure_api.routes.favorites import favorites_router
 from secure_api.routes.image import images_router
 from secure_api.routes.tables import tables_router
 from secure_api.routes.auth import auth_router
 
 from secure_api.middlewares.exception import ExceptionHandlerMiddleware
+
+
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://62dc00db2bea9fbfba2e378c3bc68514@o4506715665137664.ingest.us.sentry.io/4507057420894208",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+    enable_tracing=True,
+)
+
+
+
 
 # from fastapi_middleware_logger.fastapi_middleware_logger import add_custom_logger
 
@@ -83,6 +106,19 @@ async def add_cors_headers(request, call_next):
 # -- Enable CORS - Trusted Origins
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
+# -- Enable Better Error Reporting?
+# -- https://python.plainenglish.io/effortless-exception-error-handling-in-fastapi-a-clean-and-simplified-approach-db6f6a7a497c
+#app.add_middleware(ExceptionHandlerMiddleware)
+
+# https://fastapi.tiangolo.com/tutorial/handling-errors/#use-the-requestvalidationerror-body
+# @app.exception_handler(RequestValidationError)
+# async def validation_exception_handler(request: Request, exc: RequestValidationError):
+#     return JSONResponse(
+#         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+#         content=jsonable_encoder({"detail": exc.errors(), "body": exc.body, }),
+#     )
+
+
 # -- API Routes: auth, users, playlists, tracks, artists, albums
 app.include_router(guest_router, prefix="")
 app.include_router(my_router, prefix="")
@@ -92,6 +128,7 @@ app.include_router(albums_router, prefix="")
 app.include_router(tracks_router, prefix="")
 app.include_router(playlists_router, prefix="")
 app.include_router(playhistory_router, prefix="")
+app.include_router(favorites_router, prefix="")
 app.include_router(images_router, prefix="")
 app.include_router(tables_router, prefix="")
 app.include_router(auth_router, prefix="")

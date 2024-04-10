@@ -1,16 +1,17 @@
 description = """
-Com-Plex Backend API to manage the Users, Artists, Albums, Tracks, Playlists, PlayHistory, and Images tables.
+Com-Plex Backend API to manage the Users, Artists, Albums, Tracks, Playlists, PlayHistory, Favorites, and Image tables.
 
 ## Guest-User
 
 These functions will help you get started.
 
 **Includes:** `/create-user`, `/sign-in`, and `/sign-out`.
-> You must create an account and sign-in in order to access the rest of the API
+
+**You must create an account and sign-in in order to access the rest of the API**
 
 * **Click `Authorize` to sign-in to the [Interactive Documentation](https://api.mangoboat.tv/docs)**
 
-## My-User, My-Playlist, and My-PlayHistory
+## My-User, My-Playlist, My-PlayHistory, and My-My-Favorites
 
 These functions are the **logged-in user functions** and serve as the core functions for your FlutterFlow front-end.
 
@@ -18,18 +19,18 @@ These functions are the **logged-in user functions** and serve as the core funct
 * **`/my/playlists`**: all playlists the current user owns
 * **`/my/play-history`**: the current user's play history
 
-## User, Artist, Album, Track, Playlist, PlayHistory, and Image
+## User, Artist, Album, Track, Playlist, PlayHistory, Favorite, and Image
 
 These are direct references to the Database Tabels and are modeled after the Com-Plex Class Diagrams
-> The functions here populate information for all users and are to be viewed as *Administrative Functions*
+* The functions here populate information for all users and are to be viewed as *Administrative Functions*
 
 ## Account-Security
 
 These functions are use to implement the OAuth2 JWT Token Security Model
 
-> They are shown for reference and are not intended to be used in production
+* They are shown for reference and are not intended to be used in production
 
-> They **Guest-User** functions implement a simplified version of OAuth2 JWT and is ready for use with Flutterflow!
+* They **Guest-User** functions implement a simplified version of OAuth2 JWT and is ready for use with Flutterflow!
 
 ## /tables
 

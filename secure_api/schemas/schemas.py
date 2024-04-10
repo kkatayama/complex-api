@@ -2,7 +2,7 @@ from dateutil.parser import parse
 from datetime import date
 from pydantic import EmailStr
 from typing import List, Optional
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
 
 
 class TokenSchema(SQLModel):
@@ -25,9 +25,9 @@ class RenewToken(SQLModel):
     token: str
 
 class CreateUser(SQLModel):
-    username: str
-    password1: str
-    password2: str
+    username: str = Field(min_length=1)
+    password1: str = Field(min_length=1)
+    password2: str = Field(min_length=1)
 
 class UserFull(SQLModel):
     userID: int
@@ -47,10 +47,10 @@ class LoginUser(SQLModel):
     password: str
 
 class EditUser(SQLModel):
-    username: str
+    username: str = Field(min_length=1)
 
 class ChangePass(SQLModel):
-    oldPassword: str
+    oldPassword: str = Field(min_length=1)
     newPassword: str
 
 class DeleteUser(UserFull):
@@ -152,14 +152,14 @@ class PlaylistTrackAll(PlaylistTrackBase):
     album: AlbumBase | None = None
 
 class CreatePlaylist(SQLModel):
-    playlistName: str
+    playlistName: str = Field(min_length=1)
 
 class CreateUserPlaylist(SQLModel):
     userID: int
-    playlistName: str
+    playlistName: str = Field(min_length=1)
 
 class RenamePlaylist(SQLModel):
-    playlistName: str
+    playlistName: str = Field(min_length=1)
 
 class AddPlaylistTrack(SQLModel):
     trackID: int
@@ -193,7 +193,7 @@ class PlayHistoryFull(PlayHistoryBase):
 class PlayHistoryExtended(PlayHistoryBase):
     user: UserFull | None = None
     artist: ArtistFull | None = None
-    album: AlbumFull | None = None
+    album: AlbumBase | None = None
 
 class PlayHistoryNoUser(PlayHistoryBase):
     artist: ArtistFull | None = None
@@ -224,9 +224,16 @@ class FavoriteFull(FavoriteBase):
 class FavoriteExtended(FavoriteBase):
     user: UserFull | None = None
     artist: ArtistFull | None = None
-    album: AlbumFull | None = None
+    album: AlbumBase | None = None
+
+class FavoriteAll(FavoriteBase):
+    tracks: list[FavoriteExtended] | None = None
 
 class FavoriteAddMyTrack(SQLModel):
+    trackID: int
+
+class FavoriteAddUserTrack(SQLModel):
+    userID: int
     trackID: int
 
 class FavoriteDeleteTrack(SQLModel):

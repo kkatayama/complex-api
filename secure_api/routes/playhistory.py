@@ -14,7 +14,7 @@ playhistory_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 @playhistory_router.post("/play-history", summary="Add a track to a user's play history",
                 response_model=PlayHistory, tags=["PlayHistory"])
-def add_playhistory_trackID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+def add_playhistory(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
                             data: PlayHistoryAddUserTrack):
     track = db.get(Track, data.trackID)
     if not track:
@@ -33,24 +33,19 @@ def add_playhistory_trackID(*, me: User = Depends(get_currentUser), db: Session 
     return db_playhistory_entry
 
 
-@playhistory_router.get("/play-history", summary="Get array[] of playhistory for all user's",
+@playhistory_router.get("/play-history-all", summary="Get array[] of playhistory for all user's",
                response_model=list[PlayHistoryFull], tags=["PlayHistory"])
-def get_playhistory(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+def get_playhistory_all(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
     playhistory = db.exec(select(PlayHistory)).all()
     return playhistory
 
 
-@playhistory_router.get("/play-history/tracks", summary="Get array[] of playhistory for all user's (with tracks expanded)",
+@playhistory_router.get("/play-history-tracks", summary="Get array[] of playhistory for all user's (with tracks expanded)",
                response_model=list[PlayHistoryExtended], tags=["PlayHistory"])
 def get_playhistory_tracks(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
     playhistory = db.exec(select(PlayHistory)).all()
-
+    return playhistory
     db_playhistory = []
-    for play in playhistory:
-        user = db.get(User, play.userID)
-        artist = db.get(Artist, play.artistID)
-        album = db.get(Album, play.albumID)
-        db_playhistory.append(PlayHistoryExtended(**play.dict(), user=user, artist=artist, album=album))
     return db_playhistory
 
 
@@ -61,9 +56,10 @@ def get_playhistory_playhistoryID(*, me: User = Depends(get_currentUser), db: Se
     playhistory = db.get(PlayHistory, playhistoryID)
     if not PlayHistory:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"PlayHistory not found (playhistoryID={playhistoryID})")
-    user = db.get(User, playhistory.userID)
-    artist = db.get(Artist, playhistory.artistID)
-    album = db.get(Album, playhistory.albumID)
+    return playhistory
+    # user = db.get(User, playhistory.userID)
+    # artist = db.get(Artist, playhistory.artistID)
+    # album = db.get(Album, playhistory.albumID)
 
-    db_playhistory = PlayHistoryExtended(**playhistory.dict(), user=user, artist=artist, album=album)
-    return db_playhistory
+    # db_playhistory = PlayHistoryExtended(**playhistory.dict(), user=user, artist=artist, album=album)
+    # return db_playhistory

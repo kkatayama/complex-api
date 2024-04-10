@@ -126,10 +126,10 @@ class Track(SQLModel, table=True):
 
 class User(SQLModel, table=True):
     userID: int | None = Field(default=None, primary_key=True)
-    userRole: str
-    username: str = Field(index=True)
-    password: str
-    loginStatus: bool
+    userRole: str = Field(default="Customer")
+    username: str = Field(index=True, unique=True, nullable=False)
+    password: str = Field(nullable=False)
+    loginStatus: bool = False
 
     playlists: list[Playlist] | None = Relationship(back_populates="user")
     playhistory: list[PlayHistory] | None = Relationship(back_populates="user")

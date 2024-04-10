@@ -228,7 +228,7 @@ def delete_my_playlist_playlistID_tracks(*, me: User = Depends(get_currentUser),
 
 @my_router.post("/my/play-history", summary="Add a track to logged in user's play history",
                 response_model=PlayHistory, tags=["My-PlayHistory"])
-def addTrack_my_play_history(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+def add_my_play_history(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
                             data: PlayHistoryAddMyTrack):
     track = db.get(Track, data.trackID)
     if not track:
@@ -242,7 +242,7 @@ def addTrack_my_play_history(*, me: User = Depends(get_currentUser), db: Session
     return db_playhistory_entry
 
 
-@my_router.get("/my/play-history", summary="Get array[] of playhistory for currently logged in user",
+@my_router.get("/my/play-history-all", summary="Get array[] of playhistory for currently logged in user",
                response_model=List[PlayHistoryFull], tags=["My-PlayHistory"])
 def get_my_play_history(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
     playhistory = db.exec(select(PlayHistory).where(PlayHistory.userID == me.userID)).all()
@@ -268,7 +268,7 @@ def get_my_playhistory_playhistoryID(*, me: User = Depends(get_currentUser), db:
     return playhistory
 
 
-@my_router.post("/my/favorites", summary="Add a track to logged in user's favorites",
+@my_router.post("/my/favorites", summary="Add a favorite track (for logged in user)",
                 response_model=Favorite, tags=["My-Favorites"])
 def addTrack_my_favorites(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
                             data: FavoriteAddMyTrack):
@@ -284,28 +284,14 @@ def addTrack_my_favorites(*, me: User = Depends(get_currentUser), db: Session = 
     return db_favorite_entry
 
 
-@my_router.get("/my/favorites", summary="Get array[] of favorites for currently logged in user",
+@my_router.get("/my/favorites-all", summary="Get array[] of favorited tracks for currently logged in user",
                response_model=List[FavoriteFull], tags=["My-Favorites"])
 def get_my_favorites(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
     favorites = db.exec(select(Favorite).where(Favorite.userID == me.userID)).all()
     return favorites
 
 
-@my_router.delete("/my/favorites/{favoriteID}", summary="Delete a single track from favorites",
-                  response_model=FavoriteDeletedTrack, tags=["My-Favorites"])
-def delete_my_favorites_favoriteID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
-                                   favoriteID: int):
-    favorite = db.get(Favorite, favoriteID)
-    if not favorite:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Favorite not found (favoriteID={favoriteID})")
-    if ((me.userID != favorite.userID) and (me.userRole != "Administrator")):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete another user's favorites")
-    db.delete(favorite)
-    db.commit()
-    return favorite
-
-
-@my_router.get("/my/favorites-tracks", summary="Get array[] of favorite for currently logged in user (with tracks expanded)",
+@my_router.get("/my/favorites-tracks", summary="Get array[] of favorited for currently logged in user (with tracks expanded)",
                response_model=List[FavoriteExtended], tags=["My-Favorites"])
 def get_my_favorites_tracks(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
     favorites = db.exec(select(Favorite).where(Favorite.userID == me.userID)).all()
@@ -322,4 +308,18 @@ def get_my_favorite_favoriteID(*, me: User = Depends(get_currentUser), db: Sessi
     if ((me.userID != favorite.userID) and (me.userRole != "Administrator")):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can view another user's play history details")
 
+    return favorite
+
+
+@my_router.delete("/my/favorites/{favoriteID}", summary="Delete a single track from favorites",
+                  response_model=FavoriteDeletedTrack, tags=["My-Favorites"])
+def delete_my_favorite_favoriteID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                                   favoriteID: int):
+    favorite = db.get(Favorite, favoriteID)
+    if not favorite:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Favorite entry not found (favoriteID={favoriteID})")
+    if ((me.userID != favorite.userID) and (me.userRole != "Administrator")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete another user's favorites")
+    db.delete(favorite)
+    db.commit()
     return favorite

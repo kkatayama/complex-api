@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from secure_api.auth.auth_api import get_currentUser
 from secure_api.database.database import get_session
-from secure_api.models.models import User, PlayHistory
+from secure_api.models.models import User, PlayHistory, Playlist, PlaylistTrack
 from secure_api.schemas.schemas import DeleteUser, EditUser, UserWithPlaylistsPlayHistory
 from sqlmodel import Session, select
 
