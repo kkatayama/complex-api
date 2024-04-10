@@ -42,6 +42,7 @@ def parseRoute(route: Path):
         @[a-z_\.]+(?P<method>(post|get|patch|delete))[\(\"]+(?P<endpoint>[/a-zA-Z0-9\{\}_-]+) | # method or endpoint
         summary="(?P<summary>[a-zA-Z\_\-\[\]\{\}\(\)\.\:\!\'\=\+\,\!\ ]+)" | # summary
         tags=\["(?P<tag>[a-zA-Z_-]+) | # tags
+        \s+(?P<condition>if .+:) | # condition
         status\.(?P<error>[A-Z0-9\_]+) | # error
         detail=(?P<detail>[a-zA-Z\_\-\"\'\[\]\{\}\(\+\:\=\)\!\,.\ ]+) # detail
     ''', re.VERBOSE)
@@ -51,17 +52,21 @@ def parseRoute(route: Path):
         if m['method']:
             if ((item.get("Method")) and (not item.get("Error"))):
                 items.append(dict(**item, Error="", Detail=""))
-            item = {"Method": m["method"]}
+            item = {"Method": 'HTTP ' + m["method"].upper()}
         if m["endpoint"]:
             item["Endpoint"] = m["endpoint"]
         if m["summary"]:
             item["Summary"] = m["summary"]
         if m["tag"]:
             item["Tag"] = m["tag"]
+        if m["condition"]:
+            item["condition"] = m["condition"]
         if m["error"]:
             item["Error"] = m["error"]
         if m["detail"]:
-            item["Detail"] = m["detail"]
+            #print(m["detail"])
+            item["Detail"] = m["detail"][:-1].strip('f"')
+            #print(item["Detail"])
             items.append(dict(**item))
         #items.append(item)
     return items
@@ -110,7 +115,9 @@ def parseFunction(script: Path):
         if m["error"]:
             item["Error"] = m["error"]
         if m["detail"]:
-            item["Detail"] = m["detail"]
+            #print(m["detail"])
+            item["Detail"] = m["detail"][:-1].strip('f")')
+            #print(item["Detail"])
         if m["headers"]:
             item["Headers"] = trans[m["headers"]]
             items.append(dict(**item))
@@ -120,14 +127,16 @@ def parseFunction(script: Path):
 
 def getRouteErrors():
     routes = []
-    for route in Path('secure_api/routes').glob('*.py'):
-        if route.name not in ["__init__.py", "tables.py"]:
-            print(route.name)
-            items = parseRoute(route)
-            routes += items
+    #for route in Path('secure_api/routes').glob('*.py'):
+    #    if route.name not in ["__init__.py", "tables.py"]:
+    for py in ['guest_user.py', 'my.py', 'users.py', 'artists.py', 'albums.py', 'tracks.py', 'playlists.py', 'playhistory.py', 'favorites.py', 'image.py', 'auth.py']:
+        route = Path('secure_api', 'routes', py)
+        print(route.name)
+        items = parseRoute(route)
+        routes += items
     
     df = pd.DataFrame(routes)   
-    toExcel(df=df, xlsxfile='/Users/katayama/Endpoint_Error_Test_Conditions.xlsx')
+    toExcel(df=df, xlsxfile='Endpoint_Error_Test_Conditions.xlsx')
     print(df)
 
 def getFunctionErrors():
