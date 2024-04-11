@@ -12,8 +12,10 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 
+from fastapi.responses import HTMLResponse
+from fastapi_pagination import add_pagination
+from apitally.fastapi import ApitallyMiddleware
 
-from starlette.responses import HTMLResponse
 
 from secure_api.database.database import create_db_and_tables, get_session
 from secure_api.database.init_db import insert_tracks
@@ -67,11 +69,14 @@ app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_u
               title="Com-Plex Backend API", description=description, version="0.0.1",
               license_info={"name": "MIT License", "url": "https://opensource.org/license/mit"},
               servers=[
-                  {"url": "https://api.mangoboat.tv", "description": "Staging environment"},
-                  {"url": "https://api.mangoboat.tv", "description": "Production environment"},
+                  {"url": "https://api.mangoboat.tv", "description": "Backend environment"},
               ],
 )
-
+app.add_middleware(
+    ApitallyMiddleware,
+    client_id="87206744-08dd-43ae-841e-a254df5c2ac0",
+    env="prod",
+)
 
 @app.on_event("startup")
 def on_startup():
@@ -138,6 +143,8 @@ app.include_router(images_router, prefix="")
 app.include_router(tables_router, prefix="")
 app.include_router(auth_router, prefix="")
 
+add_pagination(app)
+
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"
 app.mount("/music", StaticFiles(directory="secure_api/music"), name="music")
 
@@ -151,6 +158,9 @@ def redoc_try_it_out() -> HTMLResponse:
     # app.openapi_version = "3.0.0"
     title = app.title + " Redoc with try it out"
     return get_redoc_html(openapi_url=app.openapi_url, title=title)
+
+
+# Running at FinTech!
 
 
 # -- "read_users_users_get" => "read_users"

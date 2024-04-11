@@ -4,17 +4,20 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from secure_api.auth.auth_api import get_currentUser
 from secure_api.database.database import get_session
 from secure_api.models.models import User, PlayHistory, Playlist, PlaylistTrack
-from secure_api.schemas.schemas import DeleteUser, EditUser, UserWithPlaylistsPlayHistory
+from secure_api.schemas.schemas import DeleteUser, EditUser, UserWithPlaylistsPlayHistory, UserFull
 from sqlmodel import Session, select
+
+from fastapi_pagination.links import Page
+from fastapi_pagination.ext.sqlmodel import paginate
+
 
 users_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
 @users_router.get("/users", summary="Get array[] of all users",
-                  response_model=List[User], tags=["User"])
+                  response_model=Page[UserFull], tags=["User"])
 def get_users(*, db: Session = Depends(get_session)):
-    users = db.exec(select(User)).all()
-    return users
+    return paginate(db, select(User))
 
 
 @users_router.get("/user/{userID}", summary="Get details of a single user",
@@ -63,3 +66,5 @@ def delete_user_userID(*, userID: int,
     db.delete(user)
     db.commit()
     return user
+
+
