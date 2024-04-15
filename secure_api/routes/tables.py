@@ -1,11 +1,16 @@
 import pandas as pd
 
-from fastapi import FastAPI, Request, APIRouter, Depends
+from fastapi import FastAPI, Request, APIRouter, Depends, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+# from fastapi_pagination import Page
+# from fastapi_pagination.ext.sqlmodel import paginate
+
+from secure_api.auth.auth_api import get_currentUser
 from secure_api.database.database import get_session, engine
-from secure_api.models.models import User, Artist, Album, Track, Image, Playlist, PlaylistTrack, PlayHistory
+from secure_api.models.models import (User, Artist, Album, Track, Image, Playlist, PlaylistTrack,
+                                      PlayHistory, Favorite, SuggestedArtist, SuggestedAlbum)
 from sqlmodel import Session, select
 
 import re
@@ -34,20 +39,77 @@ def genTable(records, caption, count=0):
 
     return html
 
-
-tables_router = APIRouter()
-
 templates = Jinja2Templates(directory="secure_api/templates")
 
 
-@tables_router.get('/tables', response_class=HTMLResponse, include_in_schema=False)
-def get_tables(request: Request, db: Session = Depends(get_session)):
-    tables = {}
-    for i, table in enumerate(["User", "Playlist", "PlaylistTrack", "PlayHistory"]): #, "Artist","Album", "Track", "Image"]):
-        db_table = db.exec(select(eval(table))).all()
-        #df_table = pd.DataFrame([item.model_dump() for item in db_table])
-        html_table = genTable([item.model_dump() for item in db_table], f"Table: {table}", count=i)
-        tables.update({f'table_{i}': html_table})
-        #print(html_table)
-    context = {'request': request, "title": "Com-Plex API Database Tables", **tables}
-    return templates.TemplateResponse("tables.html", context)
+# include_in_schema=False,
+tables_router = APIRouter(tags=["Tables"])
+
+
+
+# @tables_router.get('/tables', response_class=HTMLResponse, include_in_schema=False)
+# def get_tables(request: Request, db: Session = Depends(get_session)):
+#     tables = {}
+#     for i, table in enumerate(["User", "Playlist", "PlaylistTrack", "PlayHistory"]): #, "Artist","Album", "Track", "Image"]):
+#         db_table = db.exec(select(eval(table))).all()
+#         #df_table = pd.DataFrame([item.model_dump() for item in db_table])
+#         html_table = genTable([item.model_dump() for item in db_table], f"Table: {table}", count=i)
+#         tables.update({f'table_{i}': html_table})
+#         #print(html_table)
+#     context = {'request': request, "title": "Com-Plex API Database Tables", **tables}
+#     return templates.TemplateResponse("tables.html", context)
+
+
+@tables_router.get('/table-users', summary="Users Table", response_model=list[User])
+def get_table_users(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(User).offset(offset).limit(limit)).all()
+
+
+@tables_router.get('/table-favorites', summary="Favorites Table", response_model=list[Favorite])
+def get_table_favorites(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(Favorite).offset(offset).limit(limit)).all()
+
+
+@tables_router.get('/table-playlists', summary="Playlists Table", response_model=list[Playlist])
+def get_table_playlists(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(Playlist).offset(offset).limit(limit)).all()
+
+
+@tables_router.get('/table-play-history', summary="PlayHistory Table", response_model=list[PlayHistory])
+def get_table_play_history(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(PlayHistory).offset(offset).limit(limit)).all()
+
+
+@tables_router.get("/table-artists", summary="Artists Table", response_model=list[Artist])
+def get_table_artists(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                     offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(Artist).offset(offset).limit(limit)).all()
+
+@tables_router.get('/table-albums', summary="Albums Table", response_model=list[Album])
+def get_table_albums(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(Album).offset(offset).limit(limit)).all()
+
+@tables_router.get('/table-tracks', summary="Tracks Table", response_model=list[Track])
+def get_table_tracks(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=10000)):
+    return db.exec(select(Track).offset(offset).limit(limit)).all()
+
+@tables_router.get('/table-images', summary="Images Table", response_model=list[Image])
+def get_table_images(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(Image).offset(offset).limit(limit)).all()
+
+@tables_router.get('/table-suggested-artists', summary="Suggested Artists Table", response_model=list[SuggestedArtist])
+def get_table_suggested_artists(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(SuggestedArtist).offset(offset).limit(limit)).all()
+
+@tables_router.get('/table-suggested-albums', summary="Suggested Albums Table", response_model=list[SuggestedAlbum])
+def get_table_suggested_albums(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(SuggestedAlbum).offset(offset).limit(limit)).all()

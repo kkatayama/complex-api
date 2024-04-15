@@ -38,7 +38,7 @@ def create_user(*, data: CreateUser, db: Session = Depends(get_session)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return User(**db_user.dict())
 
 
 @guest_router.post("/sign-in", summary="Submit credentials and retrieve access tokens (via JSON)",

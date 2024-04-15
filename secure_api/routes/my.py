@@ -5,25 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from secure_api.auth.auth_api import (get_currentUser, get_hashed_password,
                                       verify_password)
 from secure_api.database.database import get_session
-from secure_api.models.models import (PlayHistory, Favorite, Playlist, PlaylistTrack,
-                                      Track, User)
-from secure_api.schemas.schemas import (AddPlaylistTrack, ChangePass,
-                                        CreatePlaylist, DeletePlaylist,
-                                        DeletePlaylistTrack, DeleteUser,
-                                        DeletedPlaylistTrack,
-                                        EditUser, PlayHistoryAddMyTrack,
-                                        PlayHistoryExtended, PlayHistoryFull,
-                                        FavoriteFull, FavoriteExtended,
-                                        FavoriteAddMyTrack,
-                                        FavoriteDeleteTrack,
-                                        FavoriteDeletedTrack,
-                                        PlaylistAll, PlaylistTrackAll,
-                                        PlaylistWithPlaylistTracks,
-                                        PlaylistWithUserTracks,
-                                        PlaylistWithUserTracksAll,
-                                        RenamePlaylist, UserFull,
-                                        UserWithPlaylistsPlayHistory,
-                                        UserWithPlaylistsPlayHistoryAll)
+from secure_api.models.models import (PlayHistory, Favorite, Playlist, PlaylistTrack, SuggestedArtist, SuggestedAlbum, Track, User, Artist, Album)
+from secure_api.schemas.schemas import (AddPlaylistTrack, ChangePass, CreatePlaylist,
+                                        DeletePlaylist, DeletePlaylistTrack, DeleteUser, DeletedPlaylistTrack,
+                                        EditUser, PlayHistoryAddMyTrack, PlayHistoryExtended, PlayHistoryFull,
+                                        FavoriteFull, FavoriteExtended, FavoriteAddMyTrack, FavoriteDeleteTrack, FavoriteDeletedTrack,
+                                        PlaylistAll, PlaylistTrackAll, PlaylistWithPlaylistTracks, PlaylistWithUserTracks,
+                                        PlaylistWithUserTracksAll, RenamePlaylist, UserFull, UserWithPlaylistsPlayHistory,
+                                        UserWithPlaylistsPlayHistoryAll, SuggestedAlbumFull, SuggestedAlbumAll,
+                                        SuggestedArtistFull, SuggestedArtistAll, SuggestedAlbumMyAdd,
+                                        SuggestedArtistMyAdd, SuggestedArtistDelete, SuggestedAlbumDelete,
+                                        SuggestedArtistDeleted, SuggestedAlbumDeleted)
 from sqlmodel import Session, select
 
 my_router = APIRouter(dependencies=[Depends(get_currentUser)])
@@ -323,3 +315,126 @@ def delete_my_favorite_favoriteID(*, me: User = Depends(get_currentUser), db: Se
     db.delete(favorite)
     db.commit()
     return favorite
+
+
+
+
+
+@my_router.post("/my/suggested-artist", summary="Add an Artist to SuggestedArtists",
+                       response_model=SuggestedArtist, tags=["My-Suggested-Artists"])
+def add_my_suggested_artist(*, data: SuggestedArtistMyAdd, db: Session = Depends(get_session),
+                         me: User = Depends(get_currentUser)):
+    artist = db.get(Artist, data.artistID)
+    if not artist:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Artist not found (artistID={data.artistID})")
+
+    db_suggested_artist = SuggestedArtist(userID=me.userID, **artist.dict())
+    db.add(db_suggested_artist)
+    db.commit()
+    db.refresh(db_suggested_artist)
+    return db_suggested_artist
+
+
+@my_router.get("/my/suggested-artists", summary="Get array[] of user's Suggested Artists",
+                      response_model=list[SuggestedArtistFull], tags=["My-Suggested-Artists"])
+def get_my_suggested_artists(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+    """
+    Highly Recommended Artists from the Com-Plex Staff
+    """
+    suggested_artists = db.exec(select(SuggestedArtist).where(SuggestedArtist.userID == me.userID)).all()
+    return suggested_artists
+
+
+@my_router.get("/my/suggested-artists-all", summary="Get array[] of user's Suggested Artists (with user and artist expanded)",
+                      response_model=list[SuggestedArtistAll], tags=["My-Suggested-Artists"])
+def get_my_suggested_artists_all(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+    """
+    Highly Recommended Artists from the Com-Plex Staff
+    """
+    suggested_artists = db.exec(select(SuggestedArtist).where(SuggestedArtist.userID == me.userID)).all()
+    return suggested_artists
+
+
+@my_router.get("/my/suggested-artists/{suggestedArtistID}", summary="Get details of a single Suggested Artist entry",
+                      response_model=SuggestedArtistAll, tags=["My-Suggested-Artists"])
+def get_my_suggested_artist(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                         suggestedArtistID: int):
+    suggested_artist = db.get(SuggestedArtist, suggestedArtistID)
+    if not suggested_artist:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Suggested Artist entry not found (suggestedArtistID={suggestedArtistID})")
+    return suggested_artist
+
+
+@my_router.delete("/my/suggested-artists/{suggestedArtistID}", summary="Delete a single artist from a user's Suggested Artists",
+                      response_model=SuggestedArtistDeleted, tags=["My-Suggested-Artists"])
+def delete_my_suggested_artist(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                         suggestedArtistID: int):
+    suggested_artist = db.get(SuggestedArtist, suggestedArtistID)
+    if not suggested_artist:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Suggested Artist entry not found (suggestedArtistID={suggestedArtistID})")
+    if ((me.userID != suggested_artist.userID) and (me.userRole != "Administrator")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete an Artist from another user's Suggested Artists")
+
+    db.delete(suggested_artist)
+    db.commit()
+    return suggested_artist
+
+
+@my_router.post("/my/suggested-album", summary="Add an Album to SuggestedAlbums",
+                       response_model=SuggestedAlbum, tags=["My-Suggested-Albums"])
+def add_my_suggested_album(*, data: SuggestedAlbumMyAdd, db: Session = Depends(get_session),
+                         me: User = Depends(get_currentUser)):
+    album = db.get(Album, data.albumID)
+    if not album:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Album not found (albumID={data.albumID})")
+
+    db_suggested_album = SuggestedAlbum(userID=me.userID, **album.dict())
+    db.add(db_suggested_album)
+    db.commit()
+    db.refresh(db_suggested_album)
+    return db_suggested_album
+
+
+@my_router.get("/my/suggested-albums", summary="Get array[] of user's Suggested Albums",
+                      response_model=list[SuggestedAlbumFull], tags=["My-Suggested-Albums"])
+def get_my_suggested_albums(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+    """
+    Highly Recommended Albums from the Com-Plex Staff
+    """
+    suggested_albums = db.exec(select(SuggestedAlbum).where(SuggestedAlbum.userID == me.userID)).all()
+    return suggested_albums
+
+
+@my_router.get("/my/suggested-albums-all", summary="Get array[] of user's Suggested Albums (with user and album expanded)",
+                      response_model=list[SuggestedAlbumAll], tags=["My-Suggested-Albums"])
+def get_my_suggested_albums_all(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session)):
+    """
+    Highly Recommended Albums from the Com-Plex Staff
+    """
+    suggested_albums = db.exec(select(SuggestedAlbum).where(SuggestedAlbum.userID == me.userID)).all()
+    return suggested_albums
+
+
+@my_router.get("/my/suggested-albums/{suggestedAlbumID}", summary="Get details of a single Suggested Album entry",
+                      response_model=SuggestedAlbumAll, tags=["My-Suggested-Albums"])
+def get_my_suggested_album(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                         suggestedAlbumID: int):
+    suggested_album = db.get(SuggestedAlbum, suggestedAlbumID)
+    if not suggested_album:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Suggested Album entry not found (suggestedAlbumID={suggestedAlbumID})")
+    return suggested_album
+
+
+@my_router.delete("/my/suggested-albums/{suggestedAlbumID}", summary="Delete a single album from a user's Suggested Albums",
+                      response_model=SuggestedAlbumDeleted, tags=["My-Suggested-Albums"])
+def delete_my_suggested_album(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
+                         suggestedAlbumID: int):
+    suggested_album = db.get(SuggestedAlbum, suggestedAlbumID)
+    if not suggested_album:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Suggested Album entry not found (suggestedAlbumID={suggestedAlbumID})")
+    if ((me.userID != suggested_album.userID) and (me.userRole != "Administrator")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete an Album from another user's Suggested Albums")
+
+    db.delete(suggested_album)
+    db.commit()
+    return suggested_album

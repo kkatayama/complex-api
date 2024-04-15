@@ -6,7 +6,7 @@ from secure_api.auth.auth_api import get_currentUser
 from secure_api.database.database import get_session
 from secure_api.models.models import Album, Artist, PlayHistory, Track, User, Favorite
 from secure_api.schemas.schemas import (FavoriteAddUserTrack, FavoriteFull, FavoriteDeletedTrack,
-                                        FavoriteExtended, FavoriteAll)
+                                        FavoriteExtended, FavoriteAll, FavoriteDeleteTrack)
 from sqlmodel import Session, select
 
 favorites_router = APIRouter(dependencies=[Depends(get_currentUser)])
@@ -60,11 +60,11 @@ def get_favorite_favoriteID(*, me: User = Depends(get_currentUser), db: Session 
 @favorites_router.delete("/favorites/{favoriteID}", summary="Delete a single track from a user's favorites",
                          response_model=FavoriteDeletedTrack, tags=["Favorite"])
 def delete_favorite_favoriteID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
-                                favoriteID: int):
+                                data: FavoriteDeleteTrack, favoriteID: int):
     favorite = db.get(Favorite, favoriteID)
     if not favorite:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Favorite entry not found (favoritesID={favoriteID})")
-    if ((favorite.userID != me.userID) and (me.userRole != "Administrator")):
+    if ((data.userID != me.userID) and (me.userRole != "Administrator")):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete a track from another user's favorites")
 
     db.delete(favorite)

@@ -10,12 +10,21 @@ from sqlmodel import Session, select
 tracks_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
-@tracks_router.get("/tracks", summary="Get array[] of all albums", tags=["Track"],
+@tracks_router.get("/tracks", summary="Get array[] of all tracks", tags=["Track"],
                    response_model=List[TrackFull])
 def get_tracks(*, db: Session = Depends(get_session),
-               offset: int = 0, limit: int = Query(default=8, le=1000)):
+               offset: int = 0, limit: int = Query(default=8, le=10000)):
     tracks = db.exec(select(Track).offset(offset).limit(limit)).all()
     return tracks
+
+
+@tracks_router.get("/tracks-albums-artists", summary="Get array[] of all tracks (with album and artist expanded)",
+                   response_model=list[TrackAll], tags=["Track"])
+def get_tracks_albums_artist(*, db: Session = Depends(get_session),
+               offset: int = 0, limit: int = Query(default=8, le=10000)):
+    tracks = db.exec(select(Track).offset(offset).limit(limit)).all()
+    return tracks
+
 
 @tracks_router.get("/track/{trackID}", summary="Get details of a single track",
                    response_model=TrackAll, tags=["Track"])

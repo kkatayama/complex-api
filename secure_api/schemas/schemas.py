@@ -88,6 +88,64 @@ class AlbumFull(AlbumBase):
 class AlbumAll(AlbumBase):
     artist: ArtistFull | None = None
 
+
+class SuggestedAlbumBase(SQLModel):
+    suggestedAlbumID: int
+    albumID: int
+    albumName: str
+    numSongs: int
+    year: int
+    albumCoverURL: str
+
+class SuggestedAlbumFull(SuggestedAlbumBase):
+    userID: int
+    albumID: int
+
+class SuggestedAlbumAll(SuggestedAlbumBase):
+    user: UserFull | None = None
+    album: AlbumBase | None = None
+
+class SuggestedAlbumMyAdd(SQLModel):
+    albumID: int
+
+class SuggestedAlbumUserAdd(SQLModel):
+    userID: int
+    albumID: int
+
+class SuggestedAlbumDelete(SQLModel):
+    userID: int
+
+class SuggestedAlbumDeleted(SuggestedAlbumBase):
+    DELETE: bool = True
+
+
+class SuggestedArtistBase(SQLModel):
+    suggestedArtistID: int
+    artistID: int
+    artistName: str
+    artistPhotoURL: str
+
+class SuggestedArtistFull(SuggestedArtistBase):
+    userID: int
+    artistID: int
+
+class SuggestedArtistAll(SuggestedArtistBase):
+    user: UserFull | None = None
+    artist: ArtistFull | None = None
+
+class SuggestedArtistMyAdd(SQLModel):
+    artistID: int
+
+class SuggestedArtistUserAdd(SQLModel):
+    userID: int
+    artistID: int
+
+class SuggestedArtistDelete(SQLModel):
+    userID: int
+
+class SuggestedArtistDeleted(SuggestedArtistBase):
+    DELETE: bool = True
+
 class TrackBase(SQLModel):
     trackID: int
     trackName: str
@@ -131,7 +189,10 @@ class PlaylistFull(PlaylistBase):
 class PlaylistAll(PlaylistBase):
     user: UserNoPassword | None = None
 
-class DeletePlaylist(PlaylistBase):
+class DeletePlaylist(SQLModel):
+    userID: int
+
+class DeletedPlaylist(PlaylistBase):
     DELETED: bool = True
 
 class PlaylistTrackBase(SQLModel):
@@ -237,7 +298,7 @@ class FavoriteAddUserTrack(SQLModel):
     trackID: int
 
 class FavoriteDeleteTrack(SQLModel):
-    favoriteID: int
+    userID: int
 
 class FavoriteDeletedTrack(FavoriteBase):
     DELETE: bool = True

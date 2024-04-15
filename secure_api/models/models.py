@@ -16,7 +16,7 @@ class Artist(SQLModel, table=True):
     ptrack: "PlaylistTrack" = Relationship(back_populates="artist")
     htrack: "PlayHistory" = Relationship(back_populates="artist")
     ftrack: "Favorite" = Relationship(back_populates="artist")
-
+    suggestedArtist: "SuggestedArtist" = Relationship(back_populates="artist")
 
 
 class Album(SQLModel, table=True):
@@ -35,6 +35,31 @@ class Album(SQLModel, table=True):
     ptrack: "PlaylistTrack" = Relationship(back_populates="album")
     htrack: "PlayHistory" = Relationship(back_populates="album")
     ftrack: "Favorite" = Relationship(back_populates="album")
+    suggestedAlbum: "SuggestedAlbum" = Relationship(back_populates="album")
+
+
+class SuggestedArtist(SQLModel, table=True):
+    suggestedArtistID: int | None = Field(default=None, primary_key=True)
+    artistID: int | None = Field(default=None, foreign_key="artist.artistID")
+    artistName: str = Field(index=True)
+    artistPhotoURL: str = Field(index=True)
+    userID: int | None = Field(default=None, foreign_key="user.userID")
+
+    user: "User" = Relationship(back_populates="suggestedArtists")
+    artist: Artist | None = Relationship(back_populates="suggestedArtist")
+
+
+class SuggestedAlbum(SQLModel, table=True):
+    suggestedAlbumID: int | None = Field(default=None, primary_key=True)
+    albumID: int | None = Field(default=None, foreign_key="album.albumID")
+    albumName: str = Field(index=True, nullable=False)
+    numSongs: int
+    year: int
+    albumCoverURL: str = Field(index=True, nullable=False)
+    userID: int | None = Field(default=None, foreign_key="user.userID")
+
+    user: "User" = Relationship(back_populates="suggestedAlbums")
+    album: Album | None = Relationship(back_populates="suggestedAlbum")
 
 
 class Playlist(SQLModel, table=True):
@@ -134,6 +159,8 @@ class User(SQLModel, table=True):
     playlists: list[Playlist] | None = Relationship(back_populates="user")
     playhistory: list[PlayHistory] | None = Relationship(back_populates="user")
     favorites: list[Favorite] | None = Relationship(back_populates="user")
+    suggestedAlbums: list[SuggestedAlbum] | None = Relationship(back_populates="user")
+    suggestedArtists: list[SuggestedArtist] | None = Relationship(back_populates="user")
 
 
 class Image(SQLModel, table=True):

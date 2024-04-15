@@ -32,8 +32,9 @@ from secure_api.routes.playlists import playlists_router
 from secure_api.routes.playhistory import playhistory_router
 from secure_api.routes.favorites import favorites_router
 from secure_api.routes.image import images_router
-from secure_api.routes.tables import tables_router
 from secure_api.routes.auth import auth_router
+from secure_api.routes.suggested import suggested_router
+from secure_api.routes.tables import tables_router
 
 from secure_api.middlewares.exception import ExceptionHandlerMiddleware
 
@@ -71,6 +72,7 @@ app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_u
               servers=[
                   {"url": "https://api.mangoboat.tv", "description": "Backend environment"},
               ],
+              swagger_ui_parameters = {"docExpansion":"none"},
 )
 app.add_middleware(
     ApitallyMiddleware,
@@ -140,6 +142,7 @@ app.include_router(playlists_router, prefix="")
 app.include_router(playhistory_router, prefix="")
 app.include_router(favorites_router, prefix="")
 app.include_router(images_router, prefix="")
+app.include_router(suggested_router, prefix="")
 app.include_router(tables_router, prefix="")
 app.include_router(auth_router, prefix="")
 

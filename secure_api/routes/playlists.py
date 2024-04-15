@@ -6,7 +6,7 @@ from secure_api.auth.auth_api import get_currentUser
 from secure_api.database.database import get_session
 from secure_api.models.models import Playlist, PlaylistTrack, Track, User
 from secure_api.schemas.schemas import (AddPlaylistTrack, CreateUserPlaylist,
-                                        DeletePlaylist, PlaylistAll,
+                                        DeletePlaylist, DeletedPlaylist, PlaylistAll,
                                         PlaylistTrackAll, DeletePlaylistTrack,
                                         PlaylistWithPlaylistTracks,
                                         PlaylistWithUserTracks,
@@ -75,14 +75,14 @@ def get_playlist_playlistID(*, db: Session = Depends(get_session),
     return playlist
 
 
-@playlists_router.delete("/playlist/{playlistID}", summary="Delete a single playlist",
-                      response_model=DeletePlaylist, tags=["Playlist"])
+@playlists_router.delete("/playlist/{playlistID}", summary="Delete a single playlist from a user",
+                      response_model=DeletedPlaylist, tags=["Playlist"])
 def delete_playlist_playlistID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
-                               playlistID: int):
+                               data: DeletePlaylist, playlistID: int):
     playlist = db.get(Playlist, playlistID)
     if not playlist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Playlist not found (playlistID={playlistID})")
-    if ((playlist.userID != me.userID) and (me.userRole != "Administrator")):
+    if ((data.userID != me.userID) and (me.userRole != "Administrator")):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only an administrator can delete another user's playlists")
 
     for track in db.exec(select(PlaylistTrack).where(PlaylistTrack.playlistID == playlistID)).all():
