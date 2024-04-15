@@ -75,6 +75,11 @@ def get_table_playlists(db: Session = Depends(get_session), me: User = Depends(g
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(Playlist).offset(offset).limit(limit)).all()
 
+@tables_router.get('/table-playlist-tracks', summary="Playlist Tracks Table", response_model=list[PlaylistTrack])
+def get_table_playlist_tracks(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(PlaylistTrack).offset(offset).limit(limit)).all()
+
 @tables_router.get('/table-play-history', summary="PlayHistory Table", response_model=list[PlayHistory])
 def get_table_play_history(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
@@ -109,8 +114,3 @@ def get_table_suggested_artists(db: Session = Depends(get_session), me: User = D
 def get_table_suggested_albums(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(SuggestedAlbum).offset(offset).limit(limit)).all()
-
-@tables_router.get('/table-playlist-tracks', summary="Playlist Tracks Table", response_model=list[PlaylistTrack])
-def get_table_playlist_tracks(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
-                    offset: int = 0, limit: int = Query(default=8, le=1000)):
-    return db.exec(select(PlaylistTrack).offset(offset).limit(limit)).all()
