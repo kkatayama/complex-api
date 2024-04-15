@@ -201,6 +201,7 @@ class PlaylistTrackBase(SQLModel):
     trackName: str
     trackNumber: int
     trackURL: str
+    genre: str
     recordedDate: str
     duration: str
 
@@ -243,6 +244,7 @@ class PlayHistoryBase(SQLModel):
     trackName: str
     trackNumber: int
     trackURL: str
+    genre: str
     recordedDate: str
     duration: str
 
@@ -274,6 +276,7 @@ class FavoriteBase(SQLModel):
     trackName: str
     trackNumber: int
     trackURL: str
+    genre: str
     recordedDate: str
     duration: str
 

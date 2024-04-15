@@ -81,6 +81,7 @@ class PlaylistTrack(SQLModel, table=True):
     trackName: str
     trackNumber: int
     trackURL: str
+    genre: str
     recordedDate: str
     duration: str
 
@@ -100,6 +101,7 @@ class PlayHistory(SQLModel, table=True):
     trackName: str = Field(index=True)
     trackNumber: int
     trackURL: str = Field(index=True)
+    genre: str
     recordedDate: str = Field(index=True)
     duration: str
 
@@ -120,6 +122,7 @@ class Favorite(SQLModel, table=True):
     trackName: str = Field(index=True)
     trackNumber: int
     trackURL: str = Field(index=True)
+    genre: str
     recordedDate: str = Field(index=True)
     duration: str
 
