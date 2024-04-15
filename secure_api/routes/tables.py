@@ -65,24 +65,20 @@ def get_table_users(db: Session = Depends(get_session), me: User = Depends(get_c
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(User).offset(offset).limit(limit)).all()
 
-
 @tables_router.get('/table-favorites', summary="Favorites Table", response_model=list[Favorite])
 def get_table_favorites(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(Favorite).offset(offset).limit(limit)).all()
-
 
 @tables_router.get('/table-playlists', summary="Playlists Table", response_model=list[Playlist])
 def get_table_playlists(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(Playlist).offset(offset).limit(limit)).all()
 
-
 @tables_router.get('/table-play-history', summary="PlayHistory Table", response_model=list[PlayHistory])
 def get_table_play_history(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(PlayHistory).offset(offset).limit(limit)).all()
-
 
 @tables_router.get("/table-artists", summary="Artists Table", response_model=list[Artist])
 def get_table_artists(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
@@ -113,3 +109,8 @@ def get_table_suggested_artists(db: Session = Depends(get_session), me: User = D
 def get_table_suggested_albums(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
                     offset: int = 0, limit: int = Query(default=8, le=1000)):
     return db.exec(select(SuggestedAlbum).offset(offset).limit(limit)).all()
+
+@tables_router.get('/table-playlist-tracks', summary="Playlist Tracks Table", response_model=list[PlaylistTrack])
+def get_table_playlist_tracks(db: Session = Depends(get_session), me: User = Depends(get_currentUser),
+                    offset: int = 0, limit: int = Query(default=8, le=1000)):
+    return db.exec(select(PlaylistTrack).offset(offset).limit(limit)).all()
