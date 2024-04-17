@@ -97,8 +97,8 @@ def insert_tracks():
                     artist=db_artist,
                     album=None,
                 ))
-            else:
-                break
+            # else:
+            #     break
 
 
 

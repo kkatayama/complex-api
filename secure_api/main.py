@@ -155,10 +155,10 @@ add_pagination(app)
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"
 #app.mount("/music", StaticFiles(directory="secure_api/music"), name="music")
 
-# -- DataTables Path
-#app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
+# # -- DataTables Path
+# app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
 
-app.mount("/css", StaticFiles(directory="secure_api/css"), name="css")
+# app.mount("/css", StaticFiles(directory="secure_api/css"), name="css")
 
 @app.get("/redoc", include_in_schema=False)
 def redoc_try_it_out() -> HTMLResponse:
