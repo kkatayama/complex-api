@@ -36,6 +36,7 @@ from secure_api.routes.image import images_router
 from secure_api.routes.auth import auth_router
 from secure_api.routes.suggested import suggested_router
 from secure_api.routes.tables import tables_router
+from secure_api.routes.media import media_router
 
 from secure_api.middlewares.exception import ExceptionHandlerMiddleware
 
@@ -147,11 +148,12 @@ app.include_router(images_router, prefix="")
 app.include_router(suggested_router, prefix="")
 app.include_router(tables_router, prefix="")
 app.include_router(auth_router, prefix="")
+app.include_router(media_router, prefix="")
 
 add_pagination(app)
 
 # -- Music Paths: "/music/Netsky/Second Nature/01 - Hold On (feat. Becky Hill).mp3"
-app.mount("/music", StaticFiles(directory="secure_api/music"), name="music")
+#app.mount("/music", StaticFiles(directory="secure_api/music"), name="music")
 
 # -- DataTables Path
 #app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
