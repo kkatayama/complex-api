@@ -7,7 +7,7 @@ from secure_api.auth.auth_api import (get_currentUser, get_hashed_password,
 from secure_api.database.database import get_session
 from secure_api.models.models import (PlayHistory, Favorite, Playlist, PlaylistTrack, SuggestedArtist, SuggestedAlbum, Track, User, Artist, Album)
 from secure_api.schemas.schemas import (AddPlaylistTrack, ChangePass, CreatePlaylist,
-                                        DeletePlaylist, DeletePlaylistTrack, DeleteUser, DeletedPlaylistTrack,
+                                        DeletedPlaylist, DeletePlaylistTrack, DeleteUser, DeletedPlaylistTrack,
                                         EditUser, PlayHistoryAddMyTrack, PlayHistoryExtended, PlayHistoryFull,
                                         FavoriteFull, FavoriteExtended, FavoriteAddMyTrack, FavoriteDeleteTrack, FavoriteDeletedTrack,
                                         PlaylistAll, PlaylistTrackAll, PlaylistWithPlaylistTracks, PlaylistWithUserTracks,
@@ -144,7 +144,7 @@ def get_my_playlist_playlistID(*, me: User = Depends(get_currentUser), db: Sessi
 
 
 @my_router.delete("/my/playlist/{playlistID}", summary="Delete a user's playlist",
-               response_model=DeletePlaylist, tags=["My-Playlist"])
+               response_model=DeletedPlaylist, tags=["My-Playlist"])
 def delete_my_playlist_playlistID(*, me: User = Depends(get_currentUser), db: Session = Depends(get_session),
                                   playlistID: int):
     playlist = db.get(Playlist, playlistID)

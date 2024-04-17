@@ -28,6 +28,7 @@ from secure_api.routes.users import users_router
 from secure_api.routes.artists import artists_router
 from secure_api.routes.albums import albums_router
 from secure_api.routes.tracks import tracks_router
+from secure_api.routes.search import search_router
 from secure_api.routes.playlists import playlists_router
 from secure_api.routes.playhistory import playhistory_router
 from secure_api.routes.favorites import favorites_router
@@ -138,6 +139,7 @@ app.include_router(users_router, prefix="")
 app.include_router(artists_router, prefix="")
 app.include_router(albums_router, prefix="")
 app.include_router(tracks_router, prefix="")
+app.include_router(search_router, prefix="")
 app.include_router(playlists_router, prefix="")
 app.include_router(playhistory_router, prefix="")
 app.include_router(favorites_router, prefix="")

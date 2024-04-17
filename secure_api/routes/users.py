@@ -15,9 +15,9 @@ users_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
 @users_router.get("/users", summary="Get array[] of all users",
-                  response_model=Page[UserFull], tags=["User"])
+                  response_model=list[UserFull], tags=["User"])
 def get_users(*, db: Session = Depends(get_session)):
-    return paginate(db, select(User))
+    return db.exec(select(User)).all()
 
 
 @users_router.get("/user/{userID}", summary="Get details of a single user",

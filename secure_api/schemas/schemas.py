@@ -190,7 +190,7 @@ class PlaylistAll(PlaylistBase):
     user: UserNoPassword | None = None
 
 class DeletePlaylist(SQLModel):
-    userID: int
+    playlistID: int
 
 class DeletedPlaylist(PlaylistBase):
     DELETED: bool = True
@@ -377,3 +377,7 @@ class UserWithPlaylistsPlayHistoryAll(UserFull):
     playlists: list[PlaylistWithPlaylistTracks] | None = None
     playhistory: list[PlayHistoryFull] | None = None
     favorites: list[FavoriteFull] | None = None
+
+
+class SearchTracks(SQLModel):
+    term: str
