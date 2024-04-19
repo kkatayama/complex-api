@@ -1,20 +1,27 @@
+import mimetypes
+import os
+
 from pathlib import Path
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Header
 from fastapi.responses import FileResponse, StreamingResponse
-from typing import Optional
-from secure_api.auth.auth_api import get_currentUser
-import httpx
+from sqlmodel import Session, select
 
-import os
+from secure_api.models.models import User
+from secure_api.database.database import get_session
+from secure_api.auth.auth_api import get_currentUser
+# import httpx
+
 
 
 media_router = APIRouter()#dependencies=[Depends(get_currentUser)])
 
 
+mimetypes.init()
 CONTENT_CHUNK_SIZE=1024
-@media_router.get("/music/{name:path}")
-def get_file(name:str, range: Optional[str] = Header(None)):
+@media_router.get("/music/{name:path}", tags=["Stream-Media"])
+def stream_file(name:str, range: Optional[str] = Header(None), db: Session = Depends(get_session)): #, me: User = Depends(get_currentUser)):
     file_path = str(Path('secure_api', 'music', name))
     # print(f'\tFILE = "{file_path}"')
     if name.endswith('.jpg'):
@@ -30,10 +37,10 @@ def get_file(name:str, range: Optional[str] = Header(None)):
         stream.close()
 
     asked = range or "bytes=0-"
-    print(asked)
     stream = open(file_path, 'rb')
     total_size = os.path.getsize(file_path)
     start_byte = int(asked.split("=")[-1].split('-')[0])
+    content_type, _ = mimetypes.guess_type(name)
 
     return StreamingResponse(
         chunk_generator_from_stream(
@@ -45,6 +52,6 @@ def get_file(name:str, range: Optional[str] = Header(None)):
         ,headers={
             "Accept-Ranges": "bytes",
             "Content-Range": f"bytes {start_byte}-{start_byte+CONTENT_CHUNK_SIZE}/{total_size}",
-            "Content-Type": "video/mp4"
+            "Content-Type": content_type # "video/mp4"
         },
         status_code=206)

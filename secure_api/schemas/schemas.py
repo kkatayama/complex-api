@@ -75,6 +75,13 @@ class ArtistFull(SQLModel):
 class ArtistAll(ArtistBase):
     artistID: int
 
+class ArtistExtraFull(ArtistFull):
+    artistExtraID: int
+    artistID: int
+    genre: str
+    info: str
+
+
 class AlbumBase(SQLModel):
     albumID: int
     albumName: str
@@ -87,6 +94,13 @@ class AlbumFull(AlbumBase):
 
 class AlbumAll(AlbumBase):
     artist: ArtistFull | None = None
+
+class AlbumExtraFull(AlbumBase):
+    albumExtraID: int
+    albumID: int
+    genre: str
+    info: str
+    color: str
 
 
 class SuggestedAlbumBase(SQLModel):
@@ -338,8 +352,19 @@ class AlbumWithTracks(AlbumAll):
 class AlbumsWithTracks(AlbumBase):
     tracks: list[TrackBase] | None = None
 
+
+
+class AlbumsExtraTracks(AlbumExtraFull):
+    tracks: list[TrackBase] | None = None
+
+
+
 class ArtistWithAlbumsTracks(ArtistFull):
     albums: list[AlbumsWithTracks] | None = None
+
+class ArtistExtraAlbumsTracks(ArtistExtraFull):
+    albums: list[AlbumsExtraTracks] | None = None
+
 
 
 class TrackWithArtistAlbum(TrackExtended):

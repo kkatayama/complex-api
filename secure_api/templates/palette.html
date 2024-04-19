@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.mycontainer {
+  display: flex;
+}
+.mycontainer > div {
+  width:80%;
+}
+p {
+  text-align: center;
+  position: relative;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+</style>
+</head>
+<body style="background-color:#282A35">
+  <center>
+    <img src="{{ imageURL }}" width="400"></img>
+  </center>
+
+<div class="mycontainer">
+  {% for color in colors %}
+  <div style="background-color:{{ color }};height: 400px">
+    <p>{{ color }}</p>
+  </div>
+  {% endfor  %}
+</div>
+
+</body>
+</html>

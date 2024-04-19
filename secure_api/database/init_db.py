@@ -197,7 +197,7 @@ def insert_tracks():
                 db.refresh(db_img)
                 # c.print(db_img)
             # c.print(f'image: "{img.imageURL}"')
-                print('Image :', {k:v for k,v in db_image.dict().items() if "ID" in k or "Name" in k})
+                print('Image :', {k:v for k,v in db_img.dict().items() if "ID" in k or "Name" in k})
 
 # if __name__ == '__main__':
 #     insert_tracks()
