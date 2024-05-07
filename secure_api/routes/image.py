@@ -12,7 +12,7 @@ images_router = APIRouter(dependencies=[Depends(get_currentUser)])
 
 
 @images_router.get("/images", summary="Get array[] of all images", tags=["Image"],
-                   response_model=List[ImageFull])
+                   response_model=List[ImageAll])
 def get_images(*, db: Session = Depends(get_session),
                offset: int = 0, limit: int = Query(default=8, le=1000)):
     images = db.exec(select(Image).offset(offset).limit(limit)).all()

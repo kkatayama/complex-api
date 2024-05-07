@@ -1,6 +1,7 @@
 from dateutil.parser import parse
 from datetime import date
 from pydantic import EmailStr
+from sqlalchemy.sql.operators import isfalse
 from typing import List, Optional
 from sqlmodel import SQLModel, Field
 
@@ -117,7 +118,8 @@ class SuggestedAlbumFull(SuggestedAlbumBase):
 
 class SuggestedAlbumAll(SuggestedAlbumBase):
     user: UserFull | None = None
-    album: AlbumBase | None = None
+    album: AlbumAll | None = None
+
 
 class SuggestedAlbumMyAdd(SQLModel):
     albumID: int
@@ -168,6 +170,7 @@ class TrackBase(SQLModel):
     genre: str
     recordedDate: str
     duration: str
+    isFavorite: int
 
 class TrackFull(TrackBase):
     albumID: int
@@ -204,7 +207,7 @@ class PlaylistAll(PlaylistBase):
     user: UserNoPassword | None = None
 
 class DeletePlaylist(SQLModel):
-    playlistID: int
+    userID: int
 
 class DeletedPlaylist(PlaylistBase):
     DELETED: bool = True
@@ -348,6 +351,9 @@ class ArtistWithAlbumTracks(ArtistFull):
 class AlbumWithTracks(AlbumAll):
     # artist: ArtistFull | None = None
     tracks: list[TrackBase] | None = None
+
+class AlbumWithTracksExpanded(AlbumAll):
+    tracks: list[TrackAll] | None = None
 
 class AlbumsWithTracks(AlbumBase):
     tracks: list[TrackBase] | None = None

@@ -1,5 +1,6 @@
 // Automatic FlutterFlow imports
 import '/backend/schema/structs/index.dart';
+import '/backend/schema/enums/enums.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/custom_code/widgets/index.dart'; // Imports other custom widgets
@@ -42,12 +43,6 @@ class ComPlexMusicPlayer extends StatefulWidget {
     required this.nextIconColor,
     required this.loopIconPressedPath,
     required this.shuffleIconPressedPath,
-    required this.speakerOnIconPath,
-    required this.speakerOffIconPath,
-    required this.speakerOnIconColor,
-    required this.speakerOffIconColor,
-    required this.dropdownTextColor,
-    required this.timerIcon,
   }) : super(key: key);
 
   final double? width;
@@ -75,12 +70,6 @@ class ComPlexMusicPlayer extends StatefulWidget {
   final Color nextIconColor;
   final Widget loopIconPressedPath;
   final Widget shuffleIconPressedPath;
-  final Widget speakerOnIconPath;
-  final Widget speakerOffIconPath;
-  final Color speakerOnIconColor;
-  final Color speakerOffIconColor;
-  final Color dropdownTextColor;
-  final Widget timerIcon;
 
   @override
   _ComPlexMusicPlayerState createState() => _ComPlexMusicPlayerState();
@@ -97,37 +86,37 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
   bool isShuffling = false;
   bool isSpeakerOn = true;
   String playbackSpeed = 'Normal';
-  Map<String, double> speedValues = {
-    '0.25x': 0.25,
-    '0.5x': 0.5,
-    '0.75x': 0.75,
-    'Normal': 1.0,
-    '1.25x': 1.25,
-    '1.5x': 1.5,
-    '1.75': 1.75,
-    '2x': 2.0,
-  };
+  // Map<String, double> speedValues = {
+  //   '0.25x': 0.25,
+  //   '0.5x': 0.5,
+  //   '0.75x': 0.75,
+  //   'Normal': 1.0,
+  //   '1.25x': 1.25,
+  //   '1.5x': 1.5,
+  //   '1.75': 1.75,
+  //   '2x': 2.0,
+  // };
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  Duration? selectedTimer;
-  final List<Duration> timerOptions = [
-    Duration(minutes: 1),
-    Duration(minutes: 10),
-    Duration(minutes: 15),
-    Duration(minutes: 20),
-    Duration(minutes: 25),
-    Duration(minutes: 30),
-    Duration(minutes: 35),
-    Duration(minutes: 40),
-    Duration(minutes: 45),
-    Duration(minutes: 50),
-    Duration(minutes: 55),
-    Duration(minutes: 60),
-    Duration(minutes: 90),
-    Duration(minutes: 120),
-  ];
-  Timer? countdownTimer;
+  // Duration? selectedTimer;
+  // final List<Duration> timerOptions = [
+  //   Duration(minutes: 1),
+  //   Duration(minutes: 10),
+  //   Duration(minutes: 15),
+  //   Duration(minutes: 20),
+  //   Duration(minutes: 25),
+  //   Duration(minutes: 30),
+  //   Duration(minutes: 35),
+  //   Duration(minutes: 40),
+  //   Duration(minutes: 45),
+  //   Duration(minutes: 50),
+  //   Duration(minutes: 55),
+  //   Duration(minutes: 60),
+  //   Duration(minutes: 90),
+  //   Duration(minutes: 120),
+  // ];
+  // Timer? countdownTimer;
 
   @override
   void initState() {
@@ -142,12 +131,10 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
       });
 
       if (state.processingState == ProcessingState.completed) {
-        playNext();
-      }
-
       /* TEDDY */
       if (FFAppState().kickstart) {
-        audioPlayer.play();
+        playPause();
+        //audioPlayer.play();
       }
       /* TEDDY */
 
@@ -162,12 +149,12 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
         currentPosition = position;
       });
       // Check if the selected timer is complete
-      if (selectedTimer != null && currentPosition >= selectedTimer!) {
-        audioPlayer.pause();
-        setState(() {
-          selectedTimer = null;
-        });
-      }
+      // if (selectedTimer != null && currentPosition >= selectedTimer!) {
+      //   audioPlayer.pause();
+      //   setState(() {
+      //     selectedTimer = null;
+      //   });
+      // }
     });
 
     _animationController = AnimationController(
@@ -187,9 +174,9 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
   void dispose() {
     audioPlayer.dispose();
     _animationController.dispose();
-    if (countdownTimer != null) {
-      countdownTimer!.cancel();
-    }
+    // if (countdownTimer != null) {
+    //   countdownTimer!.cancel();
+    // }
 
     super.dispose();
   }
@@ -259,22 +246,6 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
     });
   }
 
-  void toggleSpeaker() {
-    setState(() {
-      isSpeakerOn = !isSpeakerOn;
-      if (isSpeakerOn) {
-        audioPlayer.setVolume(1.0);
-      } else {
-        audioPlayer.setVolume(0.0);
-      }
-    });
-  }
-
-  void setPlaybackSpeed(String speed) {
-    double playbackSpeed = speedValues[speed]!;
-    audioPlayer.setSpeed(playbackSpeed);
-  }
-
   int _getRandomIndex() {
     final random = Random();
     int randomIndex = currentSongIndex;
@@ -282,16 +253,6 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
       randomIndex = random.nextInt(widget.musicUrls.length);
     }
     return randomIndex;
-  }
-
-  void setTimer(Duration duration) {
-    setState(() {
-      selectedTimer = duration;
-      if (duration == Duration.zero) {
-        audioPlayer.pause(); // Pause the player if the selected timer is 0
-      }
-      Navigator.pop(context);
-    });
   }
 
   @override
@@ -304,7 +265,7 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 8),
+            SizedBox(height: 4),
             Slider(
               value: currentPosition.inMilliseconds.toDouble(),
               min: 0,
@@ -315,10 +276,14 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
               activeColor: widget.sliderActiveColor,
               inactiveColor: widget.sliderInactiveColor,
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                Text(
+                  '${currentPosition.inMinutes}:${(currentPosition.inSeconds % 60).toString().padLeft(2, '0')}',
+                  style: TextStyle(color: widget.playbackDurationTextColor),
+                ),
                 GestureDetector(
                   onTap: toggleShuffle,
                   child: isShuffling
@@ -356,16 +321,6 @@ class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
                   child: isLooping
                       ? widget.loopIconPressedPath
                       : widget.loopIconPath,
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${currentPosition.inMinutes}:${(currentPosition.inSeconds % 60).toString().padLeft(2, '0')}',
-                  style: TextStyle(color: widget.playbackDurationTextColor),
                 ),
                 Text(
                   '${totalDuration.inMinutes}:${(totalDuration.inSeconds % 60).toString().padLeft(2, '0')}',

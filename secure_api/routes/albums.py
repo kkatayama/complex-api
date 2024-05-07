@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from secure_api.auth.auth_api import get_currentUser
 from secure_api.database.database import get_session
 from secure_api.models.models import Album
-from secure_api.schemas.schemas import AlbumFull, AlbumAll, AlbumWithTracks
+from secure_api.schemas.schemas import AlbumFull, AlbumAll, AlbumWithTracks, AlbumWithTracksExpanded
 from sqlmodel import Session, select
 
 
@@ -29,6 +29,15 @@ def get_albums_artists(*, db: Session = Depends(get_session),
 @albums_router.get("/album/{albumID}/tracks", summary="Get info for a single album (with tracks)", tags=["Album"],
                    response_model=AlbumWithTracks)
 def get_album_albumID(*, db: Session = Depends(get_session),
+                      albumID: int):
+    album = db.get(Album, albumID)
+    if not album:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Bad albumID, no Album has (albumID={albumID})")
+    return album
+
+@albums_router.get("/album/{albumID}/tracks-expanded", summary="Get info for a single album (with tracks expanded)", tags=["Album"],
+                   response_model=AlbumWithTracksExpanded)
+def get_album_albumID_expanded(*, db: Session = Depends(get_session),
                       albumID: int):
     album = db.get(Album, albumID)
     if not album:

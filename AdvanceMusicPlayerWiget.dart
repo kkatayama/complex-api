@@ -1,5 +1,6 @@
 // Automatic FlutterFlow imports
 import '/backend/schema/structs/index.dart';
+import '/backend/schema/enums/enums.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/custom_code/widgets/index.dart'; // Imports other custom widgets
@@ -14,8 +15,8 @@ import 'package:just_audio/just_audio.dart';
 import 'dart:math';
 import 'dart:async';
 
-class AdvanceMusicPlayer extends StatefulWidget {
-  const AdvanceMusicPlayer({
+class ComPlexMusicPlayer extends StatefulWidget {
+  const ComPlexMusicPlayer({
     Key? key,
     this.width,
     this.height,
@@ -83,10 +84,10 @@ class AdvanceMusicPlayer extends StatefulWidget {
   final Widget timerIcon;
 
   @override
-  _AdvanceMusicPlayerState createState() => _AdvanceMusicPlayerState();
+  _ComPlexMusicPlayerState createState() => _ComPlexMusicPlayerState();
 }
 
-class _AdvanceMusicPlayerState extends State<AdvanceMusicPlayer>
+class _ComPlexMusicPlayerState extends State<ComPlexMusicPlayer>
     with SingleTickerProviderStateMixin {
   late AudioPlayer audioPlayer;
   bool isPlaying = false;

@@ -1,7 +1,7 @@
 from datetime import date
 from pydantic import EmailStr
 from typing import List, Optional, Annotated
-from sqlmodel import Field, SQLModel, Relationship, TEXT, Column
+from sqlmodel import Field, SQLModel, Relationship, TEXT, Column, ARRAY, String
 
 
 class Artist(SQLModel, table=True):
@@ -17,6 +17,7 @@ class Artist(SQLModel, table=True):
     htrack: "PlayHistory" = Relationship(back_populates="artist")
     ftrack: "Favorite" = Relationship(back_populates="artist")
     suggestedArtist: "SuggestedArtist" = Relationship(back_populates="artist")
+    suggestedAlbums: list["SuggestedAlbum"] = Relationship(back_populates="artist")
 
 
 class ArtistExtra(SQLModel, table=True):
@@ -24,8 +25,11 @@ class ArtistExtra(SQLModel, table=True):
     artistID: int = Field(index=True)
     artistName: str = Field(index=True)
     artistPhotoURL: str = Field(index=True)
-    genre: str
-    info: str = Field(sa_column=Column(TEXT))
+
+    genre: str = Field(default=None)
+    info: str # = Field(sa_column=Column(TEXT))
+    thumbPalette: str = Field(default=None)
+    artPalette: str = Field(default=None)
 
     albums: list["AlbumExtra"] = Relationship(back_populates="artist")
     tracks: list["TrackExtra"] = Relationship(back_populates="artist")
@@ -57,9 +61,10 @@ class AlbumExtra(SQLModel, table=True):
     numSongs: int = Field(index=True)
     year: int = Field(index=True)
     albumCoverURL: str = Field(index=True)
+
     genre: str = Field(default=None)
-    info: str = Field(sa_column=Column(TEXT))
-    color: str = Field(default=None)
+    info: str # = Field(sa_column=Column(TEXT))
+    thumbPalette: str = Field(default=None)
 
     artistExtraID: int | None = Field(default=None, foreign_key="artistextra.artistExtraID")
 
@@ -87,8 +92,11 @@ class SuggestedAlbum(SQLModel, table=True):
     albumCoverURL: str = Field(index=True, nullable=False)
     userID: int | None = Field(default=None, foreign_key="user.userID")
 
+    artistID: int | None = Field(default=None, foreign_key="artist.artistID")
+
     user: "User" = Relationship(back_populates="suggestedAlbums")
     album: Album | None = Relationship(back_populates="suggestedAlbum")
+    artist: Artist = Relationship(back_populates="suggestedAlbums")
 
 
 class Playlist(SQLModel, table=True):
@@ -177,6 +185,8 @@ class Track(SQLModel, table=True):
     artistID: int | None = Field(default=None, foreign_key="artist.artistID")
     albumID: int | None = Field(default=None, foreign_key="album.albumID")
 
+    isFavorite: int = Field(default=0)
+
     artist: Artist | None = Relationship(back_populates="tracks")
     album: Album | None = Relationship(back_populates="tracks")
 
@@ -190,8 +200,10 @@ class TrackExtra(SQLModel, table=True):
     genre: str
     recordedDate: str = Field(index=True)
     duration: str
+
     info: str = Field(sa_column=Column(TEXT))
-    color: str = Field(default=None)
+    artistPalette: str = Field(default=None)
+    albumPalette: str = Field(default=None)
 
     artistExtraID: int | None = Field(default=None, foreign_key="artistextra.artistExtraID")
     albumExtraID: int | None = Field(default=None, foreign_key="albumextra.albumExtraID")

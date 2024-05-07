@@ -19,6 +19,7 @@ from apitally.fastapi import ApitallyMiddleware
 
 from secure_api.database.database import create_db_and_tables, get_session
 from secure_api.database.init_db import insert_tracks
+from secure_api.database.init_extras_db import generate
 from secure_api.templates.redoc import get_redoc_html
 from secure_api.templates.desc import description
 
@@ -41,32 +42,6 @@ from secure_api.routes.palette import palette_router
 
 from secure_api.middlewares.exception import ExceptionHandlerMiddleware
 
-
-###############################################################################
-#                                    Sentry                                   #
-###############################################################################
-# import sentry_sdk
-#
-# sentry_sdk.init(
-#     dsn="https://62dc00db2bea9fbfba2e378c3bc68514@o4506715665137664.ingest.us.sentry.io/4507057420894208",
-#     # Set traces_sample_rate to 1.0 to capture 100%
-#     # of transactions for performance monitoring.
-#     traces_sample_rate=1.0,
-#     # Set profiles_sample_rate to 1.0 to profile 100%
-#     # of sampled transactions.
-#     # We recommend adjusting this value in production.
-#     profiles_sample_rate=1.0,
-#     enable_tracing=True,
-# )
-
-
-
-
-# from fastapi_middleware_logger.fastapi_middleware_logger import add_custom_logger
-
-# import logging
-# from rich.logging import RichHandler
-# logging.basicConfig(level="DEBUG", format="%(message)s", datefmt="[%X]", handlers=[RichHandler(rich_tracebacks=True)])
 
 
 #app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
@@ -94,17 +69,19 @@ app = FastAPI(debug=True, openapi_url="/openapi.json", docs_url="/docs", redoc_u
 def on_startup():
     create_db_and_tables()
     insert_tracks()
+    #generate()
     #p = subprocess.run(f'{sys.executable} -m secure_api.database.init_db', shell=True, text=True)
 
 
 # music_path = Path.cwd().joinpath('secure_api', 'music')
 
 origins = [
-    "https://com-plex-lmp029.flutterflow.app/",
+    "https://com-plex-lmp029.flutterflow.app",
     "https://music-mvc13j.flutterflow.app",
     "https://complex.mangoboat.tv",
     "https://api.mangoboat.tv",
     "https://app.flutterflow.io",
+    "http://localhost:6602",
     "http://localhost",
     "http://localhost:8004",
     "http://192.168.1.37:8004",
@@ -117,7 +94,7 @@ async def add_cors_headers(request, call_next):
     response = await call_next(request)
     response.headers["Access-Control-Allow-Origin"] = ','.join(origins)
     response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
 
@@ -154,7 +131,7 @@ app.include_router(suggested_router, prefix="")
 app.include_router(tables_router, prefix="")
 app.include_router(auth_router, prefix="")
 app.include_router(media_router, prefix="")
-app.include_router(palette_router, prefix="")
+#app.include_router(palette_router, prefix="")
 
 add_pagination(app)
 
@@ -165,6 +142,8 @@ add_pagination(app)
 # app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
 
 # app.mount("/css", StaticFiles(directory="secure_api/css"), name="css")
+
+app.mount("/images", StaticFiles(directory="secure_api/images"), name="images")
 
 @app.get("/redoc", include_in_schema=False)
 def redoc_try_it_out() -> HTMLResponse:
