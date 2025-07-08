@@ -141,7 +141,7 @@ add_pagination(app)
 # # -- DataTables Path
 app.mount("/DataTables", StaticFiles(directory="secure_api/DataTables"), name="DataTables")
 
-app.mount("/css", StaticFiles(directory="secure_api/css"), name="css")
+# app.mount("/css", StaticFiles(directory="secure_api/css"), name="css")
 
 app.mount("/images", StaticFiles(directory="secure_api/images"), name="images")
 
