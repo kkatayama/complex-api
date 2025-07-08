@@ -11,7 +11,7 @@
 
 ## OpenAPI 
 
-``` json
+``` python
 
 {
     '/create-user': {
