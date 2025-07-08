@@ -148,4 +148,4 @@ def getFunctionErrors():
     print(df)
 
 getRouteErrors()
-#getFunctionErrors()
+getFunctionErrors()
