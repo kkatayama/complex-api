@@ -47,17 +47,17 @@ tables_router = APIRouter(tags=["Tables"])
 
 
 
-# @tables_router.get('/tables', response_class=HTMLResponse, include_in_schema=False)
-# def get_tables(request: Request, db: Session = Depends(get_session)):
-#     tables = {}
-#     for i, table in enumerate(["User", "Playlist", "PlaylistTrack", "PlayHistory"]): #, "Artist","Album", "Track", "Image"]):
-#         db_table = db.exec(select(eval(table))).all()
-#         #df_table = pd.DataFrame([item.model_dump() for item in db_table])
-#         html_table = genTable([item.model_dump() for item in db_table], f"Table: {table}", count=i)
-#         tables.update({f'table_{i}': html_table})
-#         #print(html_table)
-#     context = {'request': request, "title": "Com-Plex API Database Tables", **tables}
-#     return templates.TemplateResponse("tables.html", context)
+@tables_router.get('/tables', response_class=HTMLResponse, include_in_schema=False)
+def get_tables(request: Request, db: Session = Depends(get_session)):
+    tables = {}
+    for i, table in enumerate(["User", "Playlist", "PlaylistTrack", "PlayHistory"]): #, "Artist","Album", "Track", "Image"]):
+        db_table = db.exec(select(eval(table))).all()
+        #df_table = pd.DataFrame([item.model_dump() for item in db_table])
+        html_table = genTable([item.model_dump() for item in db_table], f"Table: {table}", count=i)
+        tables.update({f'table_{i}': html_table})
+        #print(html_table)
+    context = {'request': request, "title": "Com-Plex API Database Tables", **tables}
+    return templates.TemplateResponse("tables.html", context)
 
 
 @tables_router.get('/table-users', summary="Users Table", response_model=list[User])
