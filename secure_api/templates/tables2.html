@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Com-Plex Backend API Tables</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.min.css">
+</head>
+<body>
+  {% autoescape false %}
+
+  <h2>{{ title }}</h2>
+
+    {{ table_0 }}
+  <br />
+    {{ table_1 }}
+  <br />
+    {{ table_2 }}
+  <br />
+    {{ table_3 }}
+  <br />
+    {{ table_4 }}
+  <br />
+    {{ table_5 }}
+  <br />
+    {{ table_6 }}
+  <br />
+    {{ table_7 }}
+  <br />
+    {{ table_7 }}
+  {% endautoescape %}
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
+  <script>
+    $(document).ready(function() {
+        $('table').DataTable();
+    });
+  </script>
+
+
+</body>
+</html>

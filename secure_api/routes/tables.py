@@ -27,16 +27,18 @@ def genTable(records, caption, count=0):
     html = re.sub(r'(https://api.mangoboat.tv/music/.+(poster|cover).jpg)', r'<img src="\1" height="100"></img>', html)
     html = re.sub(r'(https://api.mangoboat.tv/music/.+\.mp3)', r'<audio controls src="\1"></audio>', html)
     html = html.replace('<th>&nbsp;</th>', '<th>index</th>')
-    html = html.replace('<table>', f'<table id="{table_id}" class="dataTable display compact hover" style="width:100%">')
+    # html = html.replace('<table>', f'<table id="{table_id}" class="dataTable display compact hover" style="width:100%">')
+    html = html.replace('<table>', f'<table id="{table_id}" class="display compact hover" style="width:100%">')
     # html = html.replace('<caption>', '<caption class="mytable caption">')
     # with open(table_id+'.html', 'w') as f:
     #     f.write(html)
     thead = re.search(r'(\s+<thead>.+</thead>)', html, flags=re.DOTALL).group()
-    tfoot = thead.replace('thead', 'tfoot')
-    html = html.replace('</tbody>', f'</tbody>{tfoot}')
+    # tfoot = thead.replace('thead', 'tfoot')
+    # html = html.replace('</tbody>', f'</tbody>{tfoot}')
+
     # html = html.replace('<thead>', '<thead class="table-dark">')
     # html = html.replace('<tbody>', '<tbody class="table-group-divider">')
-
+    html = html.replace('<caption>', '<caption style="color: blue; font-size: 1.4em; font-weight: bold; border: 2px solid powderblue;">')
     return html
 
 templates = Jinja2Templates(directory="secure_api/templates")
@@ -57,7 +59,8 @@ def get_tables(request: Request, db: Session = Depends(get_session)):
         tables.update({f'table_{i}': html_table})
         #print(html_table)
     context = {'request': request, "title": "Com-Plex API Database Tables", **tables}
-    return templates.TemplateResponse("tables.html", context)
+    # return templates.TemplateResponse("tables.html", context)
+    return templates.TemplateResponse("tables2.html", context)
 
 
 @tables_router.get('/table-users', summary="Users Table", response_model=list[User])
